@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using nexthappen_backend.AssignStands.Domain.Entities;
 using nexthappen_backend.CreateEvent.Domain.Entities;
+using nexthappen_backend.IAM.Domain.Entities;
 using nexthappen_backend.Shared.Infrastructure.Persistence.EFC.Configuration.Extensions;
 
 namespace nexthappen_backend.Shared.Infrastructure.Persistence.EFC.Configuration;
@@ -13,6 +14,8 @@ public class AppDbContext : DbContext
     public DbSet<Event> Events { get; set; } = null!;
     
     public DbSet<AssignedStand> AssignedStands { get; set; }
+    
+    public DbSet<User> Users { get; set; } = null!;
     
     protected override void OnConfiguring(DbContextOptionsBuilder builder)
     {
@@ -80,4 +83,6 @@ public class AppDbContext : DbContext
                 .IsRequired();
         });
     }
+    
+
 }

@@ -1,39 +1,102 @@
 using Microsoft.EntityFrameworkCore;
 using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+
+// Shared
 using nexthappen_backend.Shared.Infrastructure.Interfaces.ASP.Configuration;
 using nexthappen_backend.Shared.Infrastructure.Persistence.EFC.Configuration;
+
+// CreateEvent
 using nexthappen_backend.CreateEvent.Application.Services;
 using nexthappen_backend.CreateEvent.Domain.Entities;
 using nexthappen_backend.CreateEvent.Infrastructure.Persistence.Repositories;
+
+// ManageEvent
 using nexthappen_backend.ManageEvent.Application.Services;
 using nexthappen_backend.ManageEvent.Application.UseCases;
 using nexthappen_backend.ManageEvent.Domain;
 using nexthappen_backend.ManageEvent.Infrastructure.Repositories;
+
+// EventDiscovery
 using nexthappen_backend.EventDiscovery.Application.Services;
 using nexthappen_backend.EventDiscovery.Application.Usecases;
 using nexthappen_backend.EventDiscovery.Domain.Entities;
 using nexthappen_backend.EventDiscovery.Infrastructure.Persistence.Repositories;
+
+// Saved Events
 using nexthappen_backend.SavedEvents.Domain.Entities;
 using nexthappen_backend.SavedEvents.Infrastructure.Persistence.Repositories;
 using nexthappen_backend.SavedEvents.Application.Services;
 using nexthappen_backend.SavedEvents.Application.UseCases;
+
+// Tickets
 using nexthappen_backend.Tickets.Domain.Entities;
 using nexthappen_backend.Tickets.Infrastructure.Persistence.Repositories;
 using nexthappen_backend.Tickets.Application.Services;
 using nexthappen_backend.Tickets.Application.UseCases;
 
+// IAM (Auth)
+using nexthappen_backend.IAM.Domain.Services;
+using nexthappen_backend.IAM.Infrastructure.Security;
+using nexthappen_backend.IAM.Domain.Repositories;
+using nexthappen_backend.IAM.Infrastructure.Persistence;
+using nexthappen_backend.IAM.Application.UseCases;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Routing
+// RUTING
 builder.Services.AddRouting(options => options.LowercaseUrls = true);
 
-// Controllers
-builder.Services.AddControllers(options => options.Conventions.Add(new KebabCaseRouteNamingConvention()));
+// CONTROLLERS
+builder.Services.AddControllers(options =>
+    options.Conventions.Add(new KebabCaseRouteNamingConvention())
+);
 
-// Swagger SIEMPRE, también en Production
+// SWAGGER
 builder.Services.AddSwaggerGen(options => { options.EnableAnnotations(); });
 
-// Application Services & Handlers
+// ================================
+// IAM BASIC CONFIGURATION
+// ================================
+
+// Password hashing
+builder.Services.AddScoped<IPasswordHasher, BCryptPasswordHasher>();
+
+// JWT generator
+builder.Services.AddSingleton<JwtTokenGenerator>();
+
+// IAM Repositories
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+
+// IAM UseCases
+builder.Services.AddScoped<RegisterUser>();
+builder.Services.AddScoped<LoginUser>();
+
+// JWT Authentication
+builder.Services
+    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        var key = Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]);
+
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateIssuerSigningKey = true,
+            ValidateLifetime = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(key)
+        };
+    });
+
+// ================================
+// OTHERS SERVICES
+// ================================
+
 builder.Services.AddScoped<IManageEventRepository, ManageEventRepository>();
 builder.Services.AddScoped<ManageEventService>();
 builder.Services.AddScoped<GetAllEventsHandler>();
@@ -82,17 +145,15 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 var app = builder.Build();
 
-// ENDPOINT raíz para Render (evita 404)
+// ROOT for Render
 app.MapGet("/", () => Results.Ok("NextHappen API is running"));
 
-// CORS antes de controllers
+// MIDDLEWARE
 app.UseCors("AllowFrontend");
-
-// Swagger SIEMPRE visible
 app.UseSwagger();
 app.UseSwaggerUI();
 
-// Quita HTTPS redirection (Render no lo usa internamente)
+app.UseAuthentication(); 
 app.UseAuthorization();
 
 app.MapControllers();

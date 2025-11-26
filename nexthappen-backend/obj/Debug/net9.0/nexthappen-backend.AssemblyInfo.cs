@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("nexthappen-backend")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+5f8676ca2a55cb885c2b75b0a924bb4e432751db")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+9b3f7c0aeeca38143f6f0f2289e194d9dd83bd72")]
 [assembly: System.Reflection.AssemblyProductAttribute("nexthappen-backend")]
 [assembly: System.Reflection.AssemblyTitleAttribute("nexthappen-backend")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

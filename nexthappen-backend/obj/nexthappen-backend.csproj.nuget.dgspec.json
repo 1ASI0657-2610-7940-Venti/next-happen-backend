@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "D:\\nh-platform\\nexthappen-platform\\nexthappen-backend\\nexthappen-backend.csproj": {}
+    "D:\\web\\nexthappen-platform\\nexthappen-backend\\nexthappen-backend.csproj": {}
   },
   "projects": {
-    "D:\\nh-platform\\nexthappen-platform\\nexthappen-backend\\nexthappen-backend.csproj": {
+    "D:\\web\\nexthappen-platform\\nexthappen-backend\\nexthappen-backend.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\nh-platform\\nexthappen-platform\\nexthappen-backend\\nexthappen-backend.csproj",
+        "projectUniqueName": "D:\\web\\nexthappen-platform\\nexthappen-backend\\nexthappen-backend.csproj",
         "projectName": "nexthappen-backend",
-        "projectPath": "D:\\nh-platform\\nexthappen-platform\\nexthappen-backend\\nexthappen-backend.csproj",
+        "projectPath": "D:\\web\\nexthappen-platform\\nexthappen-backend\\nexthappen-backend.csproj",
         "packagesPath": "C:\\Users\\Quinho\\.nuget\\packages\\",
-        "outputPath": "D:\\nh-platform\\nexthappen-platform\\nexthappen-backend\\obj\\",
+        "outputPath": "D:\\web\\nexthappen-platform\\nexthappen-backend\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "eeSyH50QIUA=",
+  "dgSpecHash": "mfOSIU22914=",
   "success": true,
-  "projectFilePath": "D:\\nh-platform\\nexthappen-platform\\nexthappen-backend\\nexthappen-backend.csproj",
+  "projectFilePath": "D:\\web\\nexthappen-platform\\nexthappen-backend\\nexthappen-backend.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Quinho\\.nuget\\packages\\bcrypt.net-next\\4.0.3\\bcrypt.net-next.4.0.3.nupkg.sha512",
     "C:\\Users\\Quinho\\.nuget\\packages\\entityframeworkcore.createdupdateddate\\8.0.0\\entityframeworkcore.createdupdateddate.8.0.0.nupkg.sha512",

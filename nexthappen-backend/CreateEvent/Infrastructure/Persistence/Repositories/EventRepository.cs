@@ -41,5 +41,12 @@ public class EventRepository : IEventRepository
         await _context.Database.ExecuteSqlRawAsync(
             "DELETE FROM Events WHERE Id = {0}", id);
     }
-
+    
+    public async Task<IEnumerable<Event>> GetPublicEventsAsync()
+    {
+        return await _context.Events
+            .Where(e => e.IsPublic == true)
+            .OrderBy(e => e.DateRange.StartDate)
+            .ToListAsync();
+    }
 }

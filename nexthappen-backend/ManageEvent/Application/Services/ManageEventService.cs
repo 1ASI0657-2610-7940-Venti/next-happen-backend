@@ -1,4 +1,5 @@
 ﻿using nexthappen_backend.CreateEvent.Domain.Entities;
+using nexthappen_backend.CreateEvent.Domain.ValueObjects;
 using nexthappen_backend.ManageEvent.Domain;
 
 namespace nexthappen_backend.ManageEvent.Application.Services;
@@ -22,35 +23,41 @@ public class ManageEventService
         return await _repository.GetByIdAsync(id);
     }
 
-    public async Task<Event?> UpdateEventAsync(Guid id, Event updatedData)
+    public async Task<Event?> UpdateEventAsync(
+        Guid id,
+        string organizer,
+        string title,
+        string description,
+        decimal? price,
+        int? quantity,
+        string category,
+        string address,
+        string location,
+        IEnumerable<string> photos,
+        EventDateRange dateRange,
+        bool isPublic)
     {
         var existing = await _repository.GetByIdAsync(id);
         if (existing == null) return null;
 
-        try
-        {
-            existing.UpdateDetails(
-                updatedData.Organizer,
-                updatedData.Title,
-                updatedData.Description,
-                updatedData.Price,
-                updatedData.Quantity,
-                updatedData.Category,
-                updatedData.Address,
-                updatedData.Location,
-                updatedData.Photos,
-                updatedData.DateRange
-            );
+        existing.UpdateDetails(
+            organizer,
+            title,
+            description,
+            price,
+            quantity,
+            category,
+            address,
+            location,
+            photos,
+            dateRange,
+            isPublic
+        );
 
-            await _repository.UpdateAsync(existing);
-            return existing;
-        }
-        catch (ArgumentException ex)
-        {
-            Console.WriteLine($"[ERROR VALIDATION]: {ex.Message}");
-            throw;
-        }
+        await _repository.UpdateAsync(existing);
+        return existing;
     }
+
     
     public async Task<bool> DeleteEventAsync(Guid id)
     {

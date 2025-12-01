@@ -23,7 +23,8 @@ public class CreateEventService
         string address,
         string location,
         IEnumerable<string> photos,
-        EventDateRange dateRange)
+        EventDateRange dateRange,
+        bool isPublic)
     {
         // Validaciones simples
         if (string.IsNullOrWhiteSpace(title))
@@ -43,7 +44,8 @@ public class CreateEventService
             address,
             location,
             photos,
-            dateRange
+            dateRange, 
+            isPublic
         );
 
         // Guardar en la base de datos

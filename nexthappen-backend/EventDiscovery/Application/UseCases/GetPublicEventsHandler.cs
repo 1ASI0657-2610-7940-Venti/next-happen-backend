@@ -1,6 +1,6 @@
 ﻿using nexthappen_backend.EventDiscovery.Application.Services;
 
-namespace nexthappen_backend.EventDiscovery.Application.Usecases;
+namespace nexthappen_backend.EventDiscovery.Application.UseCases;
 
 public class GetPublicEventsHandler
 {
@@ -11,7 +11,7 @@ public class GetPublicEventsHandler
         _service = service;
     }
 
-    public async Task<object> Handle()
+    public async Task<IEnumerable<object>> Handle()
     {
         var events = await _service.GetPublicEventsAsync();
 
@@ -20,8 +20,12 @@ public class GetPublicEventsHandler
             e.Id,
             e.Title,
             e.Description,
-            e.StartDate,
-            e.IsPublic
+            StartDate = e.DateRange.StartDate,
+            EndDate = e.DateRange.EndDate,
+            e.Category,
+            e.Price,
+            e.Location,
+            Photos = e.Photos
         });
     }
 }

@@ -8,5 +8,5 @@ public interface IEventRepository
     Task SaveChangesAsync();
     Task UpdateAsync(Event ev);
     Task DeleteByIdAsync(Guid id);
-
+    Task<IEnumerable<Event>> GetPublicEventsAsync();
 }

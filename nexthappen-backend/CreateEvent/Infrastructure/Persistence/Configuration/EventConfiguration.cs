@@ -24,7 +24,7 @@ public class EventConfiguration : IEntityTypeConfiguration<Event>
 
         builder.Property(e => e.Photos)
             .HasConversion(
-                v => string.Join(';', v),
+                v => string.Join(";", v),
                 v => v.Split(';', StringSplitOptions.RemoveEmptyEntries).ToList()
             );
     }

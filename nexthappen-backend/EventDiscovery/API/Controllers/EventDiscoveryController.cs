@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using nexthappen_backend.EventDiscovery.Application.Usecases;
+using nexthappen_backend.EventDiscovery.Application.UseCases;
 
 namespace nexthappen_backend.EventDiscovery.API.Controllers;
 

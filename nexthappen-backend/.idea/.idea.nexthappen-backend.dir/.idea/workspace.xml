@@ -9,7 +9,63 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f7a3c47a-c0e3-438a-9f70-2d400af016c3" name="Changes" comment="" />
+    <list default="true" id="f7a3c47a-c0e3-438a-9f70-2d400af016c3" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/CreateEvent/Application/Contracts/CreateEventRequest.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/CreateEvent/Application/Contracts/EventResponse.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/CreateEvent/Application/Contracts/UpdateEventRequest.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/CreateEvent/Application/UseCases/GetAllEventsHandler.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/CreateEvent/Application/UseCases/GetEventByIdHandler.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Metrics/API/Controllers/MetricsController.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Metrics/Application/Services/MetricsService.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Metrics/Domain/Entities/Metric.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Metrics/Domain/IMetricRepository.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Metrics/Infrastructure/Persistence/Configuration/MetricConfiguration.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Metrics/Infrastructure/Persistence/Repositories/MetricRepository.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.idea.nexthappen-backend.dir/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.nexthappen-backend.dir/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CreateEvent/API/Controllers/EventContoller.cs" beforeDir="false" afterPath="$PROJECT_DIR$/CreateEvent/API/Controllers/EventContoller.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CreateEvent/Application/Services/CreateEventService.cs" beforeDir="false" afterPath="$PROJECT_DIR$/CreateEvent/Application/Services/CreateEventService.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CreateEvent/Application/UseCases/CreateEventHandler.cs" beforeDir="false" afterPath="$PROJECT_DIR$/CreateEvent/Application/UseCases/CreateEventHandler.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CreateEvent/Domain/Entities/Event.cs" beforeDir="false" afterPath="$PROJECT_DIR$/CreateEvent/Domain/Entities/Event.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CreateEvent/Domain/Entities/IEventRepository.cs" beforeDir="false" afterPath="$PROJECT_DIR$/CreateEvent/Domain/IEventRepository.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CreateEvent/Infrastructure/Persistence/Configuration/EventConfiguration.cs" beforeDir="false" afterPath="$PROJECT_DIR$/CreateEvent/Infrastructure/Persistence/Configuration/EventConfiguration.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CreateEvent/Infrastructure/Persistence/Repositories/EventRepository.cs" beforeDir="false" afterPath="$PROJECT_DIR$/CreateEvent/Infrastructure/Persistence/Repositories/EventRepository.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/EventDiscovery/API/Controllers/EventDiscoveryController.cs" beforeDir="false" afterPath="$PROJECT_DIR$/EventDiscovery/API/Controllers/EventDiscoveryController.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/EventDiscovery/Application/Services/EventDiscoveryService.cs" beforeDir="false" afterPath="$PROJECT_DIR$/EventDiscovery/Application/Services/EventDiscoveryService.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/EventDiscovery/Application/UseCases/GetPublicEventsHandler.cs" beforeDir="false" afterPath="$PROJECT_DIR$/EventDiscovery/Application/UseCases/GetPublicEventsHandler.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ManageEvent/API/Controllers/ManageEventController.cs" beforeDir="false" afterPath="$PROJECT_DIR$/ManageEvent/API/Controllers/ManageEventController.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ManageEvent/Application/Services/ManageEventService.cs" beforeDir="false" afterPath="$PROJECT_DIR$/ManageEvent/Application/Services/ManageEventService.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ManageEvent/Application/UseCases/UpdateEventHandler.cs" beforeDir="false" afterPath="$PROJECT_DIR$/ManageEvent/Application/UseCases/UpdateEventHandler.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Migrations/20251112035436_CreateEventsTable.Designer.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Migrations/20251112035436_CreateEventsTable.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Migrations/20251112043251_AddPhotosJsonColumn.Designer.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Migrations/20251112043251_AddPhotosJsonColumn.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Migrations/20251114002049_AddEventDiscoverySavedEventsTickets.Designer.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Migrations/20251114002049_AddEventDiscoverySavedEventsTickets.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Migrations/AppDbContextModelSnapshot.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Program.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Program.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Properties/launchSettings.json" beforeDir="false" afterPath="$PROJECT_DIR$/Properties/launchSettings.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Shared/Infrastructure/Persistence/EFC/Configuration/AppDbContext.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Shared/Infrastructure/Persistence/EFC/Configuration/AppDbContext.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/appsettings.Development.json" beforeDir="false" afterPath="$PROJECT_DIR$/appsettings.Development.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/appsettings.json" beforeDir="false" afterPath="$PROJECT_DIR$/appsettings.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bin/Debug/net9.0/appsettings.Development.json" beforeDir="false" afterPath="$PROJECT_DIR$/bin/Debug/net9.0/appsettings.Development.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bin/Debug/net9.0/appsettings.json" beforeDir="false" afterPath="$PROJECT_DIR$/bin/Debug/net9.0/appsettings.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bin/Debug/net9.0/nexthappen-backend.dll" beforeDir="false" afterPath="$PROJECT_DIR$/bin/Debug/net9.0/nexthappen-backend.dll" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bin/Debug/net9.0/nexthappen-backend.exe" beforeDir="false" afterPath="$PROJECT_DIR$/bin/Debug/net9.0/nexthappen-backend.exe" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bin/Debug/net9.0/nexthappen-backend.pdb" beforeDir="false" afterPath="$PROJECT_DIR$/bin/Debug/net9.0/nexthappen-backend.pdb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/nexthappen-backend.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/nexthappen-backend.csproj" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/obj/Debug/net9.0/apphost.exe" beforeDir="false" afterPath="$PROJECT_DIR$/obj/Debug/net9.0/apphost.exe" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/obj/Debug/net9.0/nexthappen-backend.AssemblyInfo.cs" beforeDir="false" afterPath="$PROJECT_DIR$/obj/Debug/net9.0/nexthappen-backend.AssemblyInfo.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/obj/Debug/net9.0/nexthappen-backend.AssemblyInfoInputs.cache" beforeDir="false" afterPath="$PROJECT_DIR$/obj/Debug/net9.0/nexthappen-backend.AssemblyInfoInputs.cache" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/obj/Debug/net9.0/nexthappen-backend.csproj.CoreCompileInputs.cache" beforeDir="false" afterPath="$PROJECT_DIR$/obj/Debug/net9.0/nexthappen-backend.csproj.CoreCompileInputs.cache" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/obj/Debug/net9.0/nexthappen-backend.dll" beforeDir="false" afterPath="$PROJECT_DIR$/obj/Debug/net9.0/nexthappen-backend.dll" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/obj/Debug/net9.0/nexthappen-backend.pdb" beforeDir="false" afterPath="$PROJECT_DIR$/obj/Debug/net9.0/nexthappen-backend.pdb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/obj/Debug/net9.0/nexthappen-backend.sourcelink.json" beforeDir="false" afterPath="$PROJECT_DIR$/obj/Debug/net9.0/nexthappen-backend.sourcelink.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/obj/Debug/net9.0/ref/nexthappen-backend.dll" beforeDir="false" afterPath="$PROJECT_DIR$/obj/Debug/net9.0/ref/nexthappen-backend.dll" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/obj/Debug/net9.0/refint/nexthappen-backend.dll" beforeDir="false" afterPath="$PROJECT_DIR$/obj/Debug/net9.0/refint/nexthappen-backend.dll" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/obj/Debug/net9.0/rjsmcshtml.dswa.cache.json" beforeDir="false" afterPath="$PROJECT_DIR$/obj/Debug/net9.0/rjsmcshtml.dswa.cache.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/obj/Debug/net9.0/rjsmrazor.dswa.cache.json" beforeDir="false" afterPath="$PROJECT_DIR$/obj/Debug/net9.0/rjsmrazor.dswa.cache.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/obj/Debug/net9.0/rpswa.dswa.cache.json" beforeDir="false" afterPath="$PROJECT_DIR$/obj/Debug/net9.0/rpswa.dswa.cache.json" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -34,6 +90,12 @@
   }
 }</component>
   <component name="HighlightingSettingsPerFile">
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/b8c04f6125d82fe6fd8aaff69672ae9d4689c62e3778c32a76a39fc3f9477a/MySqlCommand.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/CreateEvent/Application/Contracts/CreateEventRequest.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/CreateEvent/Application/Contracts/EventResponse.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/CreateEvent/Application/Contracts/UpdateEventRequest.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/CreateEvent/Application/UseCases/GetAllEventsHandler.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/CreateEvent/Application/UseCases/GetEventByIdHandler.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/IAM/API/AuthController.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/IAM/Application/DTOs/LoginRequest.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/IAM/Application/DTOs/LoginResponse.cs" root0="FORCE_HIGHLIGHTING" />
@@ -46,6 +108,13 @@
     <setting file="file://$PROJECT_DIR$/IAM/Infrastructure/Persistence/UserRepository.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/IAM/Infrastructure/Security/BCryptPasswordHasher.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/IAM/Infrastructure/Security/JwtTokenGenerator.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Metrics/API/Controllers/MetricsController.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Metrics/Application/Services/MetricsService.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Metrics/Domain/Entities/Metric.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Metrics/Domain/IMetricRepository.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Metrics/Infrastructure/Persistence/Configuration/MetricConfiguration.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Metrics/Infrastructure/Persistence/Repositories/MetricRepository.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/bin/Debug/net9.0/appsettings.json" root0="FORCE_HIGHLIGHTING" />
   </component>
   <component name="KubernetesApiPersistence">{}</component>
   <component name="KubernetesApiProvider">{
@@ -64,6 +133,7 @@
   <component name="PropertiesComponent">{
   &quot;keyToString&quot;: {
     &quot;.NET Launch Settings Profile.nexthappen-backend: http.executor&quot;: &quot;Run&quot;,
+    &quot;.NET Launch Settings Profile.nexthappen-backend: https.executor&quot;: &quot;Run&quot;,
     &quot;Docker.Dockerfile.executor&quot;: &quot;Run&quot;,
     &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
@@ -79,7 +149,7 @@
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
 }</component>
-  <component name="RunManager" selected=".NET Launch Settings Profile.nexthappen-backend: http">
+  <component name="RunManager" selected=".NET Launch Settings Profile.nexthappen-backend: https">
     <configuration name="nexthappen-backend: http" type="LaunchSettings" factoryName=".NET Launch Settings Profile">
       <option name="LAUNCH_PROFILE_PROJECT_FILE_PATH" value="$PROJECT_DIR$/nexthappen-backend.csproj" />
       <option name="LAUNCH_PROFILE_TFM" value="net9.0" />
@@ -142,6 +212,9 @@
       <workItem from="1763679454655" duration="32000" />
       <workItem from="1763680099264" duration="3363000" />
       <workItem from="1764191174910" duration="3072000" />
+      <workItem from="1764542665933" duration="971000" />
+      <workItem from="1764545319701" duration="2529000" />
+      <workItem from="1764595581193" duration="11280000" />
     </task>
     <task id="LOCAL-00001" summary=".">
       <option name="closed" value="true" />
@@ -167,7 +240,15 @@
       <option name="project" value="LOCAL" />
       <updated>1764193378663</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary=".">
+      <option name="closed" value="true" />
+      <created>1764543098929</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1764543098929</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">

@@ -10,6 +10,7 @@ using nexthappen_backend.Shared.Infrastructure.Persistence.EFC.Configuration;
 
 // CreateEvent
 using nexthappen_backend.CreateEvent.Application.Services;
+using nexthappen_backend.CreateEvent.Application.UseCases;
 using nexthappen_backend.CreateEvent.Domain.Entities;
 using nexthappen_backend.CreateEvent.Infrastructure.Persistence.Repositories;
 
@@ -21,7 +22,7 @@ using nexthappen_backend.ManageEvent.Infrastructure.Repositories;
 
 // EventDiscovery
 using nexthappen_backend.EventDiscovery.Application.Services;
-using nexthappen_backend.EventDiscovery.Application.Usecases;
+using nexthappen_backend.EventDiscovery.Application.UseCases;
 using nexthappen_backend.EventDiscovery.Domain.Entities;
 using nexthappen_backend.EventDiscovery.Infrastructure.Persistence.Repositories;
 
@@ -43,6 +44,7 @@ using nexthappen_backend.IAM.Infrastructure.Security;
 using nexthappen_backend.IAM.Domain.Repositories;
 using nexthappen_backend.IAM.Infrastructure.Persistence;
 using nexthappen_backend.IAM.Application.UseCases;
+using nexthappen_backend.Metrics.Domain;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -99,11 +101,11 @@ builder.Services
 
 builder.Services.AddScoped<IManageEventRepository, ManageEventRepository>();
 builder.Services.AddScoped<ManageEventService>();
-builder.Services.AddScoped<GetAllEventsHandler>();
 builder.Services.AddScoped<UpdateEventHandler>();
 builder.Services.AddScoped<DeleteEventHandler>();
 
 builder.Services.AddScoped<IDiscoveryEventRepository, DiscoveryEventRepository>();
+builder.Services.AddScoped<EventDiscoveryService>();
 builder.Services.AddScoped<EventDiscoveryService>();
 builder.Services.AddScoped<GetPublicEventsHandler>();
 
@@ -119,6 +121,18 @@ builder.Services.AddScoped<GetTicketByIdHandler>();
 
 builder.Services.AddScoped<IEventRepository, EventRepository>();
 builder.Services.AddScoped<CreateEventService>();
+
+// ManageEvent handlers
+builder.Services.AddScoped<nexthappen_backend.ManageEvent.Application.UseCases.GetAllEventsHandler>();
+
+// CreateEvent handlers
+builder.Services.AddScoped<nexthappen_backend.CreateEvent.Application.UseCases.GetAllEventsHandler>();
+builder.Services.AddScoped<CreateEventHandler>();
+builder.Services.AddScoped<GetEventByIdHandler>();
+
+// 👉 Metrics
+builder.Services.AddScoped<IMetricRepository, MetricRepository>();
+builder.Services.AddScoped<MetricsService>();
 
 // CORS
 builder.Services.AddCors(options =>
@@ -157,5 +171,12 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+// Auto-migrate (Render → Railway)
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    db.Database.Migrate();
+}
 
 app.Run();

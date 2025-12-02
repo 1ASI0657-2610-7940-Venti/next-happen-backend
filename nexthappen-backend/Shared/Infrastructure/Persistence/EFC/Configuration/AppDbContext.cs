@@ -66,13 +66,13 @@ public class AppDbContext : DbContext
         {
             entity.ToTable("AssignedStands");
             entity.HasKey(s => s.Id);
-            entity.Property(s => s.Id).ValueGeneratedNever();
+            entity.Property(s => s.Id).ValueGeneratedOnAdd();
             entity.Property(s => s.EventId).IsRequired();
             entity.Property(s => s.Name).HasMaxLength(200).IsRequired();
             entity.Property(s => s.Category).HasMaxLength(150).IsRequired();
         });
 
-        // USERS (IAM) 👈 **SOLUCIÓN**
+        // USERS (IAM) 
         modelBuilder.Entity<User>(entity =>
         {
             entity.ToTable("Users");

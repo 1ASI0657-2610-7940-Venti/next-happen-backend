@@ -3,6 +3,9 @@ using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using nexthappen_backend.AssignStands.Application.Services;
+using nexthappen_backend.AssignStands.Domain.Entities;
+using nexthappen_backend.AssignStands.Infrastructure.Persistence.Repositories;
 
 // Shared
 using nexthappen_backend.Shared.Infrastructure.Interfaces.ASP.Configuration;
@@ -129,6 +132,10 @@ builder.Services.AddScoped<nexthappen_backend.ManageEvent.Application.UseCases.G
 builder.Services.AddScoped<nexthappen_backend.CreateEvent.Application.UseCases.GetAllEventsHandler>();
 builder.Services.AddScoped<CreateEventHandler>();
 builder.Services.AddScoped<GetEventByIdHandler>();
+
+builder.Services.AddScoped<IAssignedStandRepository, AssignedStandRepository>();
+builder.Services.AddScoped<AssignStandsService>();
+
 
 // 👉 Metrics
 builder.Services.AddScoped<IMetricRepository, MetricRepository>();

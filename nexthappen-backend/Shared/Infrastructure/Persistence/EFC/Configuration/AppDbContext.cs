@@ -47,10 +47,11 @@ public class AppDbContext : DbContext
 
             entity.Property(e => e.Photos)
                 .HasConversion(
-                    v => string.Join(";", v),
-                    v => v.Split(";", StringSplitOptions.RemoveEmptyEntries).ToList()
+                    v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
+                    v => System.Text.Json.JsonSerializer.Deserialize<List<string>>(v, (System.Text.Json.JsonSerializerOptions?)null)
                 )
                 .HasColumnType("longtext");
+
 
 
             entity.OwnsOne(e => e.DateRange, dr =>

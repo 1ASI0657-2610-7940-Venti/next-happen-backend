@@ -12,6 +12,6 @@ public class GetSavedEventsHandler
         _service = service;
     }
 
-    public Task<IEnumerable<SavedEvent>> Handle(int userId)
+    public Task<IEnumerable<SavedEvent>> Handle(Guid userId)
         => _service.GetSavedEventsAsync(userId);
 }

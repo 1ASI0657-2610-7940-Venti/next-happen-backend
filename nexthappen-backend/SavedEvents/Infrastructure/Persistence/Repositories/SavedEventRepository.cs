@@ -21,7 +21,7 @@ public class SavedEventRepository : ISavedEventRepository
         await _context.SaveChangesAsync();
     }
 
-    public async Task RemoveAsync(int userId, int eventId)
+    public async Task RemoveAsync(Guid userId, Guid eventId)
     {
         var entity = await _context.Set<SavedEvent>()
             .FirstOrDefaultAsync(x => x.UserId == userId && x.EventId == eventId);
@@ -33,14 +33,14 @@ public class SavedEventRepository : ISavedEventRepository
         }
     }
 
-    public async Task<IEnumerable<SavedEvent>> GetSavedEventsAsync(int userId)
+    public async Task<IEnumerable<SavedEvent>> GetSavedEventsAsync(Guid userId)
     {
         return await _context.Set<SavedEvent>()
             .Where(x => x.UserId == userId)
             .ToListAsync();
     }
 
-    public Task<bool> ExistsAsync(int userId, int eventId)
+    public Task<bool> ExistsAsync(Guid userId, Guid eventId)
     {
         return _context.Set<SavedEvent>()
             .AnyAsync(x => x.UserId == userId && x.EventId == eventId);

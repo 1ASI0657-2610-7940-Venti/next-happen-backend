@@ -5,7 +5,7 @@ namespace nexthappen_backend.SavedEvents.Domain.Entities;
 public interface ISavedEventRepository
 {
     Task AddAsync(SavedEvent savedEvent);
-    Task RemoveAsync(int userId, int eventId);
-    Task<IEnumerable<SavedEvent>> GetSavedEventsAsync(int userId);
-    Task<bool> ExistsAsync(int userId, int eventId);
+    Task RemoveAsync(Guid userId, Guid eventId);
+    Task<IEnumerable<SavedEvent>> GetSavedEventsAsync(Guid userId);
+    Task<bool> ExistsAsync(Guid userId, Guid eventId);
 }

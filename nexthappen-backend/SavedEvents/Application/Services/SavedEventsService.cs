@@ -12,7 +12,7 @@ public class SavedEventsService
         _repository = repository;
     }
 
-    public async Task<bool> SaveEventAsync(int userId, int eventId)
+    public async Task<bool> SaveEventAsync(Guid userId, Guid eventId)
     {
         if (await _repository.ExistsAsync(userId, eventId))
             return false;
@@ -23,7 +23,7 @@ public class SavedEventsService
         return true;
     }
 
-    public async Task<bool> RemoveSavedEventAsync(int userId, int eventId)
+    public async Task<bool> RemoveSavedEventAsync(Guid userId, Guid eventId)
     {
         if (!await _repository.ExistsAsync(userId, eventId))
             return false;
@@ -32,6 +32,6 @@ public class SavedEventsService
         return true;
     }
 
-    public Task<IEnumerable<SavedEvent>> GetSavedEventsAsync(int userId)
+    public Task<IEnumerable<SavedEvent>> GetSavedEventsAsync(Guid userId)
         => _repository.GetSavedEventsAsync(userId);
 }

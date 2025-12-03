@@ -48,6 +48,9 @@ using nexthappen_backend.IAM.Domain.Repositories;
 using nexthappen_backend.IAM.Infrastructure.Persistence;
 using nexthappen_backend.IAM.Application.UseCases;
 using nexthappen_backend.Metrics.Domain;
+using nexthappen_backend.Notifications.Application.Services;
+using nexthappen_backend.Notifications.Domain;
+using nexthappen_backend.Notifications.Infrastructure.Persistence.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -137,9 +140,13 @@ builder.Services.AddScoped<IAssignedStandRepository, AssignedStandRepository>();
 builder.Services.AddScoped<AssignStandsService>();
 
 
-// 👉 Metrics
+// Metrics
 builder.Services.AddScoped<IMetricRepository, MetricRepository>();
 builder.Services.AddScoped<MetricsService>();
+
+// Notifications
+builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
+builder.Services.AddScoped<NotificationService>();
 
 // CORS
 builder.Services.AddCors(options =>
@@ -163,6 +170,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
         mySqlOptions => mySqlOptions.SchemaBehavior(MySqlSchemaBehavior.Ignore)
     );
 });
+
+
 
 var app = builder.Build();
 

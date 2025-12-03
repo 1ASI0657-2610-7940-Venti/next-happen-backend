@@ -2,9 +2,8 @@
 
 public interface ITicketRepository
 {
-    Task AddAsync(Ticket ticket);
-    Task<Ticket?> GetByIdAsync(int ticketId);
-    Task<IEnumerable<Ticket>> GetByUserIdAsync(int userId);
-    Task<bool> ExistsAsync(int ticketId);
-    Task RemoveAsync(Ticket ticket);
+    Task<Guid> AddAsync(Ticket ticket);
+    Task<List<Ticket>> GetByUserIdAsync(Guid userId);
+    Task<Ticket?> GetByIdAsync(Guid ticketId);
+    Task<bool> CancelAsync(Guid ticketId);
 }

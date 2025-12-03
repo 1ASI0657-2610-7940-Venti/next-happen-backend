@@ -1,39 +1,68 @@
-﻿using nexthappen_backend.Tickets.Domain.Entities;
+﻿using nexthappen_backend.CreateEvent.Domain.Entities;
+using nexthappen_backend.Tickets.Domain.Entities;
 
 namespace nexthappen_backend.Tickets.Application.Services;
 
-
 public class TicketsService
 {
-    private readonly ITicketRepository _repository;
+    private readonly ITicketRepository _ticketRepo;
+    private readonly IEventRepository _eventRepo;
 
-    public TicketsService(ITicketRepository repository)
+    public TicketsService(ITicketRepository ticketRepo, IEventRepository eventRepo)
     {
-        _repository = repository;
+        _ticketRepo = ticketRepo;
+        _eventRepo = eventRepo;
     }
 
-    public async Task<int> PurchaseTicketAsync(int userId, int eventId)
+    public async Task<object> PurchaseTicketsAsync(Guid eventId, Guid userId, int quantity)
     {
-        var ticket = new Ticket(userId, eventId);
+        try
+        {
+            var ev = await _eventRepo.GetByIdAsync(eventId);
+            if (ev == null)
+                throw new Exception("El evento no existe en la base de datos.");
 
-        await _repository.AddAsync(ticket);
-        return ticket.Id;
+            if (ev.Price == null)
+                throw new Exception("El evento no tiene precio asignado.");
+
+            decimal unitPrice = ev.Price.Value;
+            decimal total = unitPrice * quantity;
+
+            var ticketIds = new List<Guid>();
+
+            for (int i = 0; i < quantity; i++)
+            {
+                var ticket = new Ticket
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = userId,
+                    EventId = eventId,
+                    PurchaseDate = DateTime.UtcNow,
+                    Status = "Active"
+                };
+
+                await _ticketRepo.AddAsync(ticket);
+                ticketIds.Add(ticket.Id);
+            }
+
+            return new
+            {
+                EventId = eventId,
+                UserId = userId,
+                Quantity = quantity,
+                UnitPrice = unitPrice,
+                Total = total,
+                Tickets = ticketIds
+            };
+        }
+        catch (Exception ex)
+        {
+            throw new Exception("ERROR EN PURCHASE: " + ex.Message);
+        }
     }
 
-    public Task<IEnumerable<Ticket>> GetUserTicketsAsync(int userId)
-        => _repository.GetByUserIdAsync(userId);
-
-    public Task<Ticket?> GetTicketByIdAsync(int ticketId)
-        => _repository.GetByIdAsync(ticketId);
-
-    public async Task<bool> CancelTicketAsync(int ticketId)
+    public Task<bool> CancelTicketAsync(Guid ticketId)
     {
-        var ticket = await _repository.GetByIdAsync(ticketId);
-
-        if (ticket == null) return false;
-
-        ticket.Cancel();
-        await _repository.RemoveAsync(ticket);
-        return true;
+        return _ticketRepo.CancelAsync(ticketId);
     }
 }

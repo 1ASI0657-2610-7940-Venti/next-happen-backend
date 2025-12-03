@@ -13,24 +13,32 @@ public class TicketRepository : ITicketRepository
         _context = context;
     }
 
-    public async Task AddAsync(Ticket ticket)
+    public async Task<Guid> AddAsync(Ticket ticket)
     {
-        await _context.Set<Ticket>().AddAsync(ticket);
+        await _context.Tickets.AddAsync(ticket);
         await _context.SaveChangesAsync();
+        return ticket.Id;
     }
 
-    public async Task<Ticket?> GetByIdAsync(int ticketId)
-        => await _context.Set<Ticket>().FirstOrDefaultAsync(t => t.Id == ticketId);
-
-    public async Task<IEnumerable<Ticket>> GetByUserIdAsync(int userId)
-        => await _context.Set<Ticket>().Where(t => t.UserId == userId).ToListAsync();
-
-    public Task<bool> ExistsAsync(int ticketId)
-        => _context.Set<Ticket>().AnyAsync(t => t.Id == ticketId);
-
-    public async Task RemoveAsync(Ticket ticket)
+    public async Task<List<Ticket>> GetByUserIdAsync(Guid userId)
     {
-        _context.Set<Ticket>().Update(ticket);
+        return await _context.Tickets
+            .Where(t => t.UserId == userId)
+            .ToListAsync();
+    }
+
+    public async Task<Ticket?> GetByIdAsync(Guid ticketId)
+    {
+        return await _context.Tickets.FindAsync(ticketId);
+    }
+
+    public async Task<bool> CancelAsync(Guid ticketId)
+    {
+        var ticket = await _context.Tickets.FindAsync(ticketId);
+        if (ticket == null) return false;
+
+        ticket.Status = "Cancelled";
         await _context.SaveChangesAsync();
+        return true;
     }
 }

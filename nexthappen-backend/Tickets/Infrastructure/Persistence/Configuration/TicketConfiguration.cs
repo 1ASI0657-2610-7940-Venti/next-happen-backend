@@ -1,8 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using nexthappen_backend.Tickets.Domain.Entities;
-using nexthappen_backend.Tickets.Domain.ValueObjects;
-
 
 namespace nexthappen_backend.Tickets.Infrastructure.Persistence.Configuration;
 
@@ -18,8 +16,9 @@ public class TicketConfiguration : IEntityTypeConfiguration<Ticket>
         builder.Property(t => t.EventId).IsRequired();
         builder.Property(t => t.PurchaseDate).IsRequired();
 
+        // FIX: NO CONVERTIR A INT – GUARDAR COMO TEXTO
         builder.Property(t => t.Status)
-            .HasConversion<int>()
+            .HasMaxLength(50)
             .IsRequired();
     }
 }

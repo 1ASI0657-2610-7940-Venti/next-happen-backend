@@ -1,17 +1,17 @@
-﻿using nexthappen_backend.Tickets.Application.Services;
+﻿using nexthappen_backend.Tickets.Domain;
 using nexthappen_backend.Tickets.Domain.Entities;
 
 namespace nexthappen_backend.Tickets.Application.UseCases;
 
 public class GetUserTicketsHandler
 {
-    private readonly TicketsService _service;
+    private readonly ITicketRepository _repository;
 
-    public GetUserTicketsHandler(TicketsService service)
+    public GetUserTicketsHandler(ITicketRepository repository)
     {
-        _service = service;
+        _repository = repository;
     }
 
-    public Task<IEnumerable<Ticket>> Handle(int userId)
-        => _service.GetUserTicketsAsync(userId);
+    public Task<List<Ticket>> Handle(Guid userId)
+        => _repository.GetByUserIdAsync(userId);
 }

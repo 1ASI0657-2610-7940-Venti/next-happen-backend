@@ -4,9 +4,13 @@ using nexthappen_backend.AssignStands.Domain.Entities;
 using nexthappen_backend.CreateEvent.Domain.Entities;
 using nexthappen_backend.IAM.Domain.Entities;
 using nexthappen_backend.Metrics.Domain.Entities;
+using nexthappen_backend.Notifications.Domain.Entities;
+using nexthappen_backend.Notifications.Infrastructure.Persistence.Configuration;
 using nexthappen_backend.SavedEvents.Domain.Entities;
 using nexthappen_backend.SavedEvents.Infrastructure.Persistence.Configuration;
 using nexthappen_backend.Shared.Infrastructure.Persistence.EFC.Configuration.Extensions;
+using nexthappen_backend.Tickets.Domain.Entities;
+using nexthappen_backend.Tickets.Infrastructure.Persistence.Configuration;
 
 namespace nexthappen_backend.Shared.Infrastructure.Persistence.EFC.Configuration;
 
@@ -21,7 +25,10 @@ public class AppDbContext : DbContext
     public DbSet<Metric> Metrics { get; set; }
     
     public DbSet<SavedEvent> SavedEvents { get; set; }
-
+    
+    public DbSet<Notification> Notifications { get; set; }
+    public DbSet<Ticket> Tickets { get; set; }
+    
     protected override void OnConfiguring(DbContextOptionsBuilder builder)
     {
         builder.AddCreatedUpdatedInterceptor();
@@ -34,8 +41,9 @@ public class AppDbContext : DbContext
         
         modelBuilder.ApplyConfiguration(new MetricConfiguration());
         modelBuilder.ApplyConfiguration(new SavedEventConfiguration());
-
-
+        modelBuilder.ApplyConfiguration(new TicketConfiguration());
+        modelBuilder.ApplyConfiguration(new NotificationConfiguration());
+        
         // EVENTS
         modelBuilder.Entity<Event>(entity =>
         {

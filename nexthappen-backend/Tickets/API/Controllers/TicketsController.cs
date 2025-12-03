@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using nexthappen_backend.Tickets.Application.DTOs;
 using nexthappen_backend.Tickets.Application.Services;
 using nexthappen_backend.Tickets.Application.UseCases;
 
@@ -24,29 +25,31 @@ public class TicketsController : ControllerBase
         _service = service;
     }
 
-    [HttpPost("api/events/{eventId}/tickets/purchase")]
-    public async Task<IActionResult> Purchase(int eventId, int userId = 1) 
+    [HttpPost("api/events/{eventId:guid}/tickets/purchase")]
+    public async Task<IActionResult> Purchase(Guid eventId, [FromQuery] Guid userId, [FromQuery] int quantity)
     {
-        int ticketId = await _purchaseHandler.Handle(userId, eventId);
-        return Ok(new { TicketId = ticketId });
+        var result = await _purchaseHandler.Handle(eventId, userId, quantity);
+        return Ok(result);
     }
 
-    [HttpGet("api/users/{userId}/tickets")]
-    public async Task<IActionResult> GetUserTickets(int userId)
+
+
+    [HttpGet("api/users/{userId:guid}/tickets")]
+    public async Task<IActionResult> GetUserTickets(Guid userId)
     {
         var tickets = await _listHandler.Handle(userId);
         return Ok(tickets);
     }
 
-    [HttpGet("api/tickets/{ticketId}")]
-    public async Task<IActionResult> GetTicketDetail(int ticketId)
+    [HttpGet("api/tickets/{ticketId:guid}")]
+    public async Task<IActionResult> GetTicketDetail(Guid ticketId)
     {
         var ticket = await _detailHandler.Handle(ticketId);
         return ticket != null ? Ok(ticket) : NotFound();
     }
 
-    [HttpDelete("api/tickets/{ticketId}")]
-    public async Task<IActionResult> CancelTicket(int ticketId)
+    [HttpDelete("api/tickets/{ticketId:guid}")]
+    public async Task<IActionResult> CancelTicket(Guid ticketId)
     {
         var result = await _service.CancelTicketAsync(ticketId);
         return result ? Ok() : NotFound();

@@ -11,6 +11,8 @@ public class PurchaseTicketHandler
         _service = service;
     }
 
-    public Task<int> Handle(int userId, int eventId)
-        => _service.PurchaseTicketAsync(userId, eventId);
+    public Task<object> Handle(Guid eventId, Guid userId, int quantity)
+    {
+        return _service.PurchaseTicketsAsync(eventId, userId, quantity);
+    }
 }

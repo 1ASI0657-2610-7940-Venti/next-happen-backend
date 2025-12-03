@@ -8,6 +8,8 @@ public class SavedEvent
     public Guid UserId { get; private set; }
     public Guid EventId { get; private set; }
     public SavedEventStatus Status { get; private set; }
+    
+    public string TempFix { get; private set; } = "";
 
     protected SavedEvent() { }
 

@@ -2,7 +2,7 @@
 using nexthappen_backend.Metrics.Domain.Entities;
 
 [ApiController]
-[Route("metrics")]
+[Route("api/metrics")]
 public class MetricsController : ControllerBase
 {
     private readonly MetricsService _service;

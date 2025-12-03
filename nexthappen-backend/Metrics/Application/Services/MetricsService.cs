@@ -13,7 +13,7 @@ public class MetricsService
     public Task<List<Metric>> GetAllAsync()
         => _repository.GetAllAsync();
 
-    public async Task RegisterAsync(int eventId, string action, DateTime timestamp)
+    public async Task RegisterAsync(Guid eventId, string action, DateTime timestamp)
     {
         var metric = new Metric
         {

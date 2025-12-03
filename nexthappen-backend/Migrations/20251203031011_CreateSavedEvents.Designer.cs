@@ -12,8 +12,8 @@ using nexthappen_backend.Shared.Infrastructure.Persistence.EFC.Configuration;
 namespace nexthappen_backend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20251203023711_Init")]
-    partial class Init
+    [Migration("20251203031011_CreateSavedEvents")]
+    partial class CreateSavedEvents
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

@@ -186,11 +186,4 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-// Auto-migrate (Render → Railway)
-using (var scope = app.Services.CreateScope())
-{
-    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    db.Database.Migrate();
-}
-
 app.Run();

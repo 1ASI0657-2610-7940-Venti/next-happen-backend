@@ -12,8 +12,8 @@ using nexthappen_backend.Shared.Infrastructure.Persistence.EFC.Configuration;
 namespace nexthappen_backend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20251203033414_InitRailway")]
-    partial class InitRailway
+    [Migration("20251203035628_SyncRailway")]
+    partial class SyncRailway
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

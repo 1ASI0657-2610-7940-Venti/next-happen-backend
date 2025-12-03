@@ -142,6 +142,28 @@ namespace nexthappen_backend.Migrations
                     b.ToTable("Metrics", (string)null);
                 });
 
+            modelBuilder.Entity("nexthappen_backend.SavedEvents.Domain.Entities.SavedEvent", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<Guid>("EventId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("char(36)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("SavedEvents");
+                });
+
             modelBuilder.Entity("nexthappen_backend.CreateEvent.Domain.Entities.Event", b =>
                 {
                     b.OwnsOne("nexthappen_backend.CreateEvent.Domain.ValueObjects.EventDateRange", "DateRange", b1 =>

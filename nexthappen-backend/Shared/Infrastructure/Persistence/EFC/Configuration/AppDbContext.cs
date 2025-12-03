@@ -4,6 +4,7 @@ using nexthappen_backend.AssignStands.Domain.Entities;
 using nexthappen_backend.CreateEvent.Domain.Entities;
 using nexthappen_backend.IAM.Domain.Entities;
 using nexthappen_backend.Metrics.Domain.Entities;
+using nexthappen_backend.SavedEvents.Domain.Entities;
 using nexthappen_backend.Shared.Infrastructure.Persistence.EFC.Configuration.Extensions;
 
 namespace nexthappen_backend.Shared.Infrastructure.Persistence.EFC.Configuration;
@@ -18,6 +19,8 @@ public class AppDbContext : DbContext
     
     public DbSet<Metric> Metrics { get; set; }
     
+    public DbSet<SavedEvent> SavedEvents { get; set; }
+
     protected override void OnConfiguring(DbContextOptionsBuilder builder)
     {
         builder.AddCreatedUpdatedInterceptor();

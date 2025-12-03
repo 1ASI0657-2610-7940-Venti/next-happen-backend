@@ -3,6 +3,8 @@ using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+
+// AssignStands
 using nexthappen_backend.AssignStands.Application.Services;
 using nexthappen_backend.AssignStands.Domain.Entities;
 using nexthappen_backend.AssignStands.Infrastructure.Persistence.Repositories;
@@ -41,55 +43,50 @@ using nexthappen_backend.Tickets.Infrastructure.Persistence.Repositories;
 using nexthappen_backend.Tickets.Application.Services;
 using nexthappen_backend.Tickets.Application.UseCases;
 
-// IAM (Auth)
+// IAM
 using nexthappen_backend.IAM.Domain.Services;
 using nexthappen_backend.IAM.Infrastructure.Security;
 using nexthappen_backend.IAM.Domain.Repositories;
 using nexthappen_backend.IAM.Infrastructure.Persistence;
 using nexthappen_backend.IAM.Application.UseCases;
+
+// Metrics
 using nexthappen_backend.Metrics.Domain;
 using nexthappen_backend.Notifications.Application.Services;
+
+// Notifications
 using nexthappen_backend.Notifications.Domain;
 using nexthappen_backend.Notifications.Infrastructure.Persistence.Repositories;
 
+
 var builder = WebApplication.CreateBuilder(args);
 
-// RUTING
+// Routing
 builder.Services.AddRouting(options => options.LowercaseUrls = true);
 
-// CONTROLLERS
+// Controllers
 builder.Services.AddControllers(options =>
-    options.Conventions.Add(new KebabCaseRouteNamingConvention())
-);
+{
+    options.Conventions.Add(new KebabCaseRouteNamingConvention());
+});
 
-// SWAGGER
+// Swagger
 builder.Services.AddSwaggerGen(options => { options.EnableAnnotations(); });
 
-// ================================
-// IAM BASIC CONFIGURATION
-// ================================
-
-// Password hashing
+// JWT CONFIG
 builder.Services.AddScoped<IPasswordHasher, BCryptPasswordHasher>();
-
-// JWT generator
 builder.Services.AddSingleton<JwtTokenGenerator>();
-
-// IAM Repositories
 builder.Services.AddScoped<IUserRepository, UserRepository>();
-
-// IAM UseCases
 builder.Services.AddScoped<RegisterUser>();
 builder.Services.AddScoped<LoginUser>();
 
-// JWT Authentication
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
         var key = Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]);
 
-        options.TokenValidationParameters = new TokenValidationParameters
+        options.TokenValidationParameters = new TokenValidationParameters()
         {
             ValidateIssuer = true,
             ValidateAudience = true,
@@ -101,17 +98,13 @@ builder.Services
         };
     });
 
-// ================================
-// OTHERS SERVICES
-// ================================
-
+// Repositorios y servicios sin duplicados
 builder.Services.AddScoped<IManageEventRepository, ManageEventRepository>();
 builder.Services.AddScoped<ManageEventService>();
 builder.Services.AddScoped<UpdateEventHandler>();
 builder.Services.AddScoped<DeleteEventHandler>();
 
 builder.Services.AddScoped<IDiscoveryEventRepository, DiscoveryEventRepository>();
-builder.Services.AddScoped<EventDiscoveryService>();
 builder.Services.AddScoped<EventDiscoveryService>();
 builder.Services.AddScoped<GetPublicEventsHandler>();
 
@@ -128,10 +121,7 @@ builder.Services.AddScoped<GetTicketByIdHandler>();
 builder.Services.AddScoped<IEventRepository, EventRepository>();
 builder.Services.AddScoped<CreateEventService>();
 
-// ManageEvent handlers
 builder.Services.AddScoped<nexthappen_backend.ManageEvent.Application.UseCases.GetAllEventsHandler>();
-
-// CreateEvent handlers
 builder.Services.AddScoped<nexthappen_backend.CreateEvent.Application.UseCases.GetAllEventsHandler>();
 builder.Services.AddScoped<CreateEventHandler>();
 builder.Services.AddScoped<GetEventByIdHandler>();
@@ -139,14 +129,12 @@ builder.Services.AddScoped<GetEventByIdHandler>();
 builder.Services.AddScoped<IAssignedStandRepository, AssignedStandRepository>();
 builder.Services.AddScoped<AssignStandsService>();
 
-
-// Metrics
 builder.Services.AddScoped<IMetricRepository, MetricRepository>();
 builder.Services.AddScoped<MetricsService>();
 
-// Notifications
 builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
 builder.Services.AddScoped<NotificationService>();
+
 
 // CORS
 builder.Services.AddCors(options =>
@@ -159,7 +147,7 @@ builder.Services.AddCors(options =>
     });
 });
 
-// MySQL connection
+// DATABASE
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
     var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
@@ -172,25 +160,31 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 });
 
 
-
 var app = builder.Build();
 
+
+// MIGRAR AUTOMÁTICAMENTE 
 using (var scope = app.Services.CreateScope())
 {
-    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    db.Database.Migrate();
+    try
+    {
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        db.Database.Migrate();
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine("Migration Error: " + ex.Message);
+    }
 }
 
-
-// ROOT for Render
+// Root
 app.MapGet("/", () => Results.Ok("NextHappen API is running"));
 
-// MIDDLEWARE
 app.UseCors("AllowFrontend");
 app.UseSwagger();
 app.UseSwaggerUI();
 
-app.UseAuthentication(); 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

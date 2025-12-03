@@ -155,9 +155,14 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseMySql(
         connectionString,
         new MySqlServerVersion(new Version(8, 0, 32)),
-        mySqlOptions => mySqlOptions.SchemaBehavior(MySqlSchemaBehavior.Ignore)
+        mySqlOptions =>
+        {
+            mySqlOptions.MigrationsAssembly("nexthappen-backend");
+            mySqlOptions.SchemaBehavior(MySqlSchemaBehavior.Ignore);
+        }
     );
 });
+
 
 
 var app = builder.Build();

@@ -28,7 +28,7 @@ public class CreateEventHandler
             request.Location,
             request.Photos,
             dateRange, 
-            request.IsPublic
+            true
         );
 
         return new EventResponse

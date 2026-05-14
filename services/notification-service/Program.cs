@@ -1,10 +1,12 @@
 using System.Text;
+using MassTransit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
 using NextHappen.Notification.Domain.Repositories;
+using NextHappen.Notification.Infrastructure.Messaging;
 using NextHappen.Notification.Infrastructure.Persistence;
 using NextHappen.Notification.Infrastructure.Persistence.Repositories;
 
@@ -45,6 +47,24 @@ builder.Services
 builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
 
 builder.Services.AddCors(o => o.AddPolicy("AllowAll", p => p.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod()));
+
+// ── RabbitMQ (MassTransit) — Consumers ──
+builder.Services.AddMassTransit(x =>
+{
+    x.AddConsumer<EventSavedConsumer>();
+    x.AddConsumer<EventUnsavedConsumer>();
+    x.AddConsumer<EventViewedConsumer>();
+
+    x.UsingRabbitMq((context, cfg) =>
+    {
+        cfg.Host(builder.Configuration["RabbitMQ:Host"] ?? "localhost", "/", h =>
+        {
+            h.Username(builder.Configuration["RabbitMQ:Username"] ?? "guest");
+            h.Password(builder.Configuration["RabbitMQ:Password"] ?? "guest");
+        });
+        cfg.ConfigureEndpoints(context);
+    });
+});
 
 builder.Services.AddDbContext<NotificationDbContext>(options =>
 {

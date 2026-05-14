@@ -16,6 +16,22 @@ services:
       timeout: 5s
       retries: 5
 
+  # ── RabbitMQ ──
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: nexthappen-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_running"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   # ── IAM Service ──
   iam-service:
     build:
@@ -67,7 +83,7 @@ services:
       mysql:
         condition: service_healthy
 
-  # ── Engagement Service ──
+  # ── Engagement Service (Publisher) ──
   engagement-service:
     build:
       context: .
@@ -80,11 +96,16 @@ services:
       - Jwt__Key=uR7kQp2$$z1X!v8BnC4eP9xLfW6mZ3aHs
       - Jwt__Issuer=nexthappen
       - Jwt__Audience=nexthappen-users
+      - RabbitMQ__Host=rabbitmq
+      - RabbitMQ__Username=guest
+      - RabbitMQ__Password=guest
     depends_on:
       mysql:
         condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
 
-  # ── Notification Service ──
+  # ── Notification Service (Consumer) ──
   notification-service:
     build:
       context: .
@@ -97,8 +118,13 @@ services:
       - Jwt__Key=uR7kQp2$$z1X!v8BnC4eP9xLfW6mZ3aHs
       - Jwt__Issuer=nexthappen
       - Jwt__Audience=nexthappen-users
+      - RabbitMQ__Host=rabbitmq
+      - RabbitMQ__Username=guest
+      - RabbitMQ__Password=guest
     depends_on:
       mysql:
+        condition: service_healthy
+      rabbitmq:
         condition: service_healthy
 
   # ── API Gateway ──
@@ -124,3 +150,4 @@ services:
 
 volumes:
   mysql_data:
+

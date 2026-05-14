@@ -1,0 +1,128 @@
+version: "3.8"
+
+services:
+  # ── Base de datos ──
+  mysql:
+    image: mysql:8.0
+    container_name: nexthappen-db
+    environment:
+      MYSQL_ROOT_PASSWORD: admin
+      MYSQL_DATABASE: nexthappen
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── IAM Service ──
+  iam-service:
+    build:
+      context: .
+      dockerfile: services/iam-service/Dockerfile
+    container_name: nexthappen-iam
+    ports:
+      - "5001:80"
+    environment:
+      - ConnectionStrings__DefaultConnection=server=mysql;database=nexthappen;user=root;password=admin
+      - Jwt__Key=uR7kQp2$$z1X!v8BnC4eP9xLfW6mZ3aHs
+      - Jwt__Issuer=nexthappen
+      - Jwt__Audience=nexthappen-users
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  # ── Event Service ──
+  event-service:
+    build:
+      context: .
+      dockerfile: services/event-service/Dockerfile
+    container_name: nexthappen-event
+    ports:
+      - "5002:80"
+    environment:
+      - ConnectionStrings__DefaultConnection=server=mysql;database=nexthappen;user=root;password=admin
+      - Jwt__Key=uR7kQp2$$z1X!v8BnC4eP9xLfW6mZ3aHs
+      - Jwt__Issuer=nexthappen
+      - Jwt__Audience=nexthappen-users
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  # ── Ticket Service ──
+  ticket-service:
+    build:
+      context: .
+      dockerfile: services/ticket-service/Dockerfile
+    container_name: nexthappen-ticket
+    ports:
+      - "5003:80"
+    environment:
+      - ConnectionStrings__DefaultConnection=server=mysql;database=nexthappen;user=root;password=admin
+      - Jwt__Key=uR7kQp2$$z1X!v8BnC4eP9xLfW6mZ3aHs
+      - Jwt__Issuer=nexthappen
+      - Jwt__Audience=nexthappen-users
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  # ── Engagement Service ──
+  engagement-service:
+    build:
+      context: .
+      dockerfile: services/engagement-service/Dockerfile
+    container_name: nexthappen-engagement
+    ports:
+      - "5004:80"
+    environment:
+      - ConnectionStrings__DefaultConnection=server=mysql;database=nexthappen;user=root;password=admin
+      - Jwt__Key=uR7kQp2$$z1X!v8BnC4eP9xLfW6mZ3aHs
+      - Jwt__Issuer=nexthappen
+      - Jwt__Audience=nexthappen-users
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  # ── Notification Service ──
+  notification-service:
+    build:
+      context: .
+      dockerfile: services/notification-service/Dockerfile
+    container_name: nexthappen-notification
+    ports:
+      - "5005:80"
+    environment:
+      - ConnectionStrings__DefaultConnection=server=mysql;database=nexthappen;user=root;password=admin
+      - Jwt__Key=uR7kQp2$$z1X!v8BnC4eP9xLfW6mZ3aHs
+      - Jwt__Issuer=nexthappen
+      - Jwt__Audience=nexthappen-users
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  # ── API Gateway ──
+  api-gateway:
+    build:
+      context: .
+      dockerfile: gateway/api-gateway/Dockerfile
+    container_name: nexthappen-gateway
+    ports:
+      - "5000:80"
+    environment:
+      - ReverseProxy__Clusters__iam-cluster__Destinations__iam-service__Address=http://iam-service:80
+      - ReverseProxy__Clusters__event-cluster__Destinations__event-service__Address=http://event-service:80
+      - ReverseProxy__Clusters__ticket-cluster__Destinations__ticket-service__Address=http://ticket-service:80
+      - ReverseProxy__Clusters__engagement-cluster__Destinations__engagement-service__Address=http://engagement-service:80
+      - ReverseProxy__Clusters__notification-cluster__Destinations__notification-service__Address=http://notification-service:80
+    depends_on:
+      - iam-service
+      - event-service
+      - ticket-service
+      - engagement-service
+      - notification-service
+
+volumes:
+  mysql_data:

@@ -118,6 +118,34 @@ El frontend solo necesita apuntar a `http://localhost:5000` y el gateway se enca
 
 ## 🚀 Cómo correr el proyecto
 
+### Opción 1: Docker Compose (recomendado)
+
+Un solo comando levanta todo: MySQL + 5 microservicios + API Gateway.
+
+```bash
+docker-compose up --build
+```
+
+| Servicio | URL |
+|----------|-----|
+| API Gateway | http://localhost:5000 |
+| IAM Service | http://localhost:5001 |
+| Event Service | http://localhost:5002 |
+| Ticket Service | http://localhost:5003 |
+| Engagement Service | http://localhost:5004 |
+| Notification Service | http://localhost:5005 |
+| MySQL | localhost:3307 |
+
+```bash
+# Detener todo
+docker-compose down
+
+# Detener y borrar volúmenes (reset DB)
+docker-compose down -v
+```
+
+### Opción 2: Manual (desarrollo local)
+
 ### Prerequisitos
 
 - [.NET 9.0 SDK](https://dotnet.microsoft.com/download)

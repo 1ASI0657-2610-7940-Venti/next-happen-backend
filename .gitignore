@@ -1,0 +1,18 @@
+# .NET Core
+[Bb]in/
+[Oo]bj/
+[Oo]ut/
+.vs/
+*.user
+*.userosscache
+*.suo
+*.userprefs
+*.DS_Store
+
+# Frontend
+node_modules/
+dist/
+.env
+.env.local
+.env.*.local
+.DS_Store

@@ -32,21 +32,26 @@ builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
-        var key = Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!);
-        options.TokenValidationParameters = new TokenValidationParameters
+        var jwtKey = builder.Configuration["Jwt:Key"];
+        if (!string.IsNullOrEmpty(jwtKey))
         {
-            ValidateIssuer = true, ValidateAudience = true,
-            ValidateIssuerSigningKey = true, ValidateLifetime = true,
-            ValidIssuer = builder.Configuration["Jwt:Issuer"],
-            ValidAudience = builder.Configuration["Jwt:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(key)
-        };
+            var key = Encoding.UTF8.GetBytes(jwtKey);
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer = true, ValidateAudience = true,
+                ValidateIssuerSigningKey = true, ValidateLifetime = true,
+                ValidIssuer = builder.Configuration["Jwt:Issuer"],
+                ValidAudience = builder.Configuration["Jwt:Audience"],
+                IssuerSigningKey = new SymmetricSecurityKey(key)
+            };
+        }
     });
 
 // HttpClient for event-service communication
 builder.Services.AddHttpClient("EventService", client =>
 {
-    client.BaseAddress = new Uri("http://localhost:5002");
+    var baseAddr = builder.Configuration["Services:EventService"] ?? "http://localhost:5002";
+    client.BaseAddress = new Uri(baseAddr);
 });
 
 builder.Services.AddScoped<ITicketRepository, TicketRepository>();
@@ -56,18 +61,27 @@ builder.Services.AddCors(o => o.AddPolicy("AllowAll", p => p.AllowAnyOrigin().Al
 
 builder.Services.AddDbContext<TicketDbContext>(options =>
 {
-    options.UseMySql(
-        builder.Configuration.GetConnectionString("DefaultConnection"),
-        new MySqlServerVersion(new Version(8, 0, 32)),
-        mysql => mysql.SchemaBehavior(MySqlSchemaBehavior.Ignore));
+    if (builder.Environment.IsEnvironment("Testing")) return;
+
+    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+    if (!string.IsNullOrEmpty(connectionString))
+    {
+        options.UseMySql(
+            connectionString,
+            new MySqlServerVersion(new Version(8, 0, 32)),
+            mysql => mysql.SchemaBehavior(MySqlSchemaBehavior.Ignore));
+    }
 });
 
 var app = builder.Build();
 
-using (var scope = app.Services.CreateScope())
+if (!app.Environment.IsEnvironment("Testing"))
 {
-    try { scope.ServiceProvider.GetRequiredService<TicketDbContext>().Database.EnsureCreated(); }
-    catch (Exception ex) { Console.WriteLine($"[Ticket] Migration Error: {ex.Message}"); }
+    using (var scope = app.Services.CreateScope())
+    {
+        try { scope.ServiceProvider.GetRequiredService<TicketDbContext>().Database.EnsureCreated(); }
+        catch (Exception ex) { Console.WriteLine($"[Ticket] Migration Error: {ex.Message}"); }
+    }
 }
 
 app.MapGet("/", () => Results.Ok("NextHappen Ticket Service is running"));
@@ -78,3 +92,5 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.Run();
+
+public partial class Program { }

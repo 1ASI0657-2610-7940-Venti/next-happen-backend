@@ -58,17 +58,21 @@ builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
-        var key = Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!);
-        options.TokenValidationParameters = new TokenValidationParameters
+        var jwtKey = builder.Configuration["Jwt:Key"];
+        if (!string.IsNullOrEmpty(jwtKey))
         {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateIssuerSigningKey = true,
-            ValidateLifetime = true,
-            ValidIssuer = builder.Configuration["Jwt:Issuer"],
-            ValidAudience = builder.Configuration["Jwt:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(key)
-        };
+            var key = Encoding.UTF8.GetBytes(jwtKey);
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidateIssuerSigningKey = true,
+                ValidateLifetime = true,
+                ValidIssuer = builder.Configuration["Jwt:Issuer"],
+                ValidAudience = builder.Configuration["Jwt:Audience"],
+                IssuerSigningKey = new SymmetricSecurityKey(key)
+            };
+        }
     });
 
 // ── DI ──
@@ -89,27 +93,36 @@ builder.Services.AddCors(options =>
 // ── Database ──
 builder.Services.AddDbContext<EventDbContext>(options =>
 {
+    // Skip configuration if we are in Testing environment (tests will provide their own DB provider)
+    if (builder.Environment.IsEnvironment("Testing")) return;
+
     var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-    options.UseMySql(
-        connectionString,
-        new MySqlServerVersion(new Version(8, 0, 32)),
-        mysql => mysql.SchemaBehavior(MySqlSchemaBehavior.Ignore)
-    );
+    if (!string.IsNullOrEmpty(connectionString))
+    {
+        options.UseMySql(
+            connectionString,
+            new MySqlServerVersion(new Version(8, 0, 32)),
+            mysql => mysql.SchemaBehavior(MySqlSchemaBehavior.Ignore)
+        );
+    }
 });
 
 var app = builder.Build();
 
 // ── Auto-migrate ──
-using (var scope = app.Services.CreateScope())
+if (!app.Environment.IsEnvironment("Testing"))
 {
-    try
+    using (var scope = app.Services.CreateScope())
     {
-        var db = scope.ServiceProvider.GetRequiredService<EventDbContext>();
-        db.Database.EnsureCreated();
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"[Event] Migration Error: {ex.Message}");
+        try
+        {
+            var db = scope.ServiceProvider.GetRequiredService<EventDbContext>();
+            db.Database.EnsureCreated();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[Event] Migration Error: {ex.Message}");
+        }
     }
 }
 
@@ -126,3 +139,5 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+public partial class Program { }

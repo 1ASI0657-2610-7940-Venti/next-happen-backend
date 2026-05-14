@@ -1,0 +1,99 @@
+services:
+  # ── IAM Service ──
+  iam-service:
+    build:
+      context: .
+      dockerfile: services/iam-service/Dockerfile
+    container_name: nexthappen-iam-prod
+    restart: unless-stopped
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__DefaultConnection=${DB_CONNECTION_IAM}
+      - Jwt__Key=${JWT_KEY}
+      - Jwt__Issuer=${JWT_ISSUER}
+      - Jwt__Audience=${JWT_AUDIENCE}
+
+  # ── Event Service ──
+  event-service:
+    build:
+      context: .
+      dockerfile: services/event-service/Dockerfile
+    container_name: nexthappen-event-prod
+    restart: unless-stopped
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__DefaultConnection=${DB_CONNECTION_EVENTS}
+      - Jwt__Key=${JWT_KEY}
+      - Jwt__Issuer=${JWT_ISSUER}
+      - Jwt__Audience=${JWT_AUDIENCE}
+
+  # ── Ticket Service ──
+  ticket-service:
+    build:
+      context: .
+      dockerfile: services/ticket-service/Dockerfile
+    container_name: nexthappen-ticket-prod
+    restart: unless-stopped
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__DefaultConnection=${DB_CONNECTION_TICKETS}
+      - Jwt__Key=${JWT_KEY}
+      - Jwt__Issuer=${JWT_ISSUER}
+      - Jwt__Audience=${JWT_AUDIENCE}
+
+  # ── Engagement Service ──
+  engagement-service:
+    build:
+      context: .
+      dockerfile: services/engagement-service/Dockerfile
+    container_name: nexthappen-engagement-prod
+    restart: unless-stopped
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__DefaultConnection=${DB_CONNECTION_ENGAGEMENT}
+      - Jwt__Key=${JWT_KEY}
+      - Jwt__Issuer=${JWT_ISSUER}
+      - Jwt__Audience=${JWT_AUDIENCE}
+      - RabbitMQ__Host=${RABBITMQ_HOST}
+      - RabbitMQ__Username=${RABBITMQ_USER}
+      - RabbitMQ__Password=${RABBITMQ_PASS}
+
+  # ── Notification Service ──
+  notification-service:
+    build:
+      context: .
+      dockerfile: services/notification-service/Dockerfile
+    container_name: nexthappen-notification-prod
+    restart: unless-stopped
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__DefaultConnection=${DB_CONNECTION_NOTIFICATIONS}
+      - Jwt__Key=${JWT_KEY}
+      - Jwt__Issuer=${JWT_ISSUER}
+      - Jwt__Audience=${JWT_AUDIENCE}
+      - RabbitMQ__Host=${RABBITMQ_HOST}
+      - RabbitMQ__Username=${RABBITMQ_USER}
+      - RabbitMQ__Password=${RABBITMQ_PASS}
+
+  # ── API Gateway (Punto de entrada público) ──
+  api-gateway:
+    build:
+      context: .
+      dockerfile: gateway/api-gateway/Dockerfile
+    container_name: nexthappen-gateway-prod
+    restart: unless-stopped
+    ports:
+      - "80:80" # Expone el puerto 80 al internet
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ReverseProxy__Clusters__iam-cluster__Destinations__iam-service__Address=http://iam-service:80
+      - ReverseProxy__Clusters__event-cluster__Destinations__event-service__Address=http://event-service:80
+      - ReverseProxy__Clusters__ticket-cluster__Destinations__ticket-service__Address=http://ticket-service:80
+      - ReverseProxy__Clusters__engagement-cluster__Destinations__engagement-service__Address=http://engagement-service:80
+      - ReverseProxy__Clusters__notification-cluster__Destinations__notification-service__Address=http://notification-service:80
+    depends_on:
+      - iam-service
+      - event-service
+      - ticket-service
+      - engagement-service
+      - notification-service

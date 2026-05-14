@@ -100,7 +100,23 @@ Notificaciones al organizador del evento.
 | `POST` | `/api/notifications` | Crear notificación |
 | `POST` | `/api/notifications/{id}/read` | Marcar como leída |
 
-## 🚀 Cómo correr cada microservicio
+### 🌐 API Gateway (`api-gateway`) — Puerto 5000
+Punto de entrada único que redirige las peticiones al microservicio correcto usando YARP.
+
+El frontend solo necesita apuntar a `http://localhost:5000` y el gateway se encarga de distribuir el tráfico.
+
+| Ruta | Servicio destino |
+|------|-----------------|
+| `/api/auth/*` | iam-service (:5001) |
+| `/api/users/*` | iam-service (:5001) |
+| `/api/events/*` | event-service (:5002) |
+| `/api/stands/*` | event-service (:5002) |
+| `/api/tickets/*` | ticket-service (:5003) |
+| `/api/users/*/saved-events/*` | engagement-service (:5004) |
+| `/api/metrics/*` | engagement-service (:5004) |
+| `/api/notifications/*` | notification-service (:5005) |
+
+## 🚀 Cómo correr el proyecto
 
 ### Prerequisitos
 
@@ -134,9 +150,13 @@ dotnet run
 # Notification Service (puerto 5005)
 cd services/notification-service
 dotnet run
+
+# API Gateway (puerto 5000) — iniciar al final
+cd gateway/api-gateway
+dotnet run
 ```
 
-Cada servicio crea automáticamente sus tablas en la base de datos al iniciar.
+> **Tip:** Inicia primero todos los microservicios y luego el gateway. El frontend solo necesita conectarse a `http://localhost:5000`.
 
 ### Correr el monolito original (legacy)
 
@@ -192,7 +212,7 @@ El frontend (Vue.js) se encuentra en una carpeta separada y se conecta al backen
 | ✅ Ticket Service | Completado |
 | ✅ Engagement Service | Completado |
 | ✅ Notification Service | Completado |
-| ⏳ API Gateway | Pendiente |
+| ✅ API Gateway | Completado |
 
 ## 👥 Equipo
 

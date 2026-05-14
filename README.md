@@ -66,6 +66,40 @@ CRUD completo de eventos, descubrimiento de eventos públicos y gestión de stan
 
 > 🔒 = Requiere JWT con rol `Organizer` o `Admin`
 
+### 🎫 Ticket Service (`ticket-service`) — Puerto 5003
+Compra y gestión de tickets para eventos.
+
+**Endpoints:**
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| `POST` | `/api/events/{id}/tickets/purchase` | Comprar tickets |
+| `GET` | `/api/users/{id}/tickets` | Tickets del usuario |
+| `GET` | `/api/tickets/{id}` | Detalle de ticket |
+| `DELETE` | `/api/tickets/{id}` | Cancelar ticket |
+
+### 📊 Engagement Service (`engagement-service`) — Puerto 5004
+Eventos guardados y métricas de interacción.
+
+**Endpoints:**
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| `POST` | `/api/users/{id}/saved-events/{eventId}` | Guardar evento 🔒 |
+| `DELETE` | `/api/users/{id}/saved-events/{eventId}` | Quitar guardado 🔒 |
+| `GET` | `/api/users/{id}/saved-events` | Eventos guardados 🔒 |
+| `POST` | `/api/metrics` | Registrar métrica |
+| `GET` | `/api/metrics` | Listar métricas |
+| `POST` | `/api/metrics/event-view/{eventId}` | Registrar vista de evento |
+
+### 🔔 Notification Service (`notification-service`) — Puerto 5005
+Notificaciones al organizador del evento.
+
+**Endpoints:**
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| `GET` | `/api/notifications/{userId}` | Notificaciones del usuario |
+| `POST` | `/api/notifications` | Crear notificación |
+| `POST` | `/api/notifications/{id}/read` | Marcar como leída |
+
 ## 🚀 Cómo correr cada microservicio
 
 ### Prerequisitos
@@ -87,6 +121,18 @@ dotnet run
 
 # Event Service (puerto 5002)
 cd services/event-service
+dotnet run
+
+# Ticket Service (puerto 5003)
+cd services/ticket-service
+dotnet run
+
+# Engagement Service (puerto 5004)
+cd services/engagement-service
+dotnet run
+
+# Notification Service (puerto 5005)
+cd services/notification-service
 dotnet run
 ```
 
@@ -143,9 +189,9 @@ El frontend (Vue.js) se encuentra en una carpeta separada y se conecta al backen
 |---------|--------|
 | ✅ IAM Service | Completado |
 | ✅ Event Service | Completado |
-| ⏳ Ticket Service | Pendiente |
-| ⏳ Engagement Service | Pendiente |
-| ⏳ Notification Service | Pendiente |
+| ✅ Ticket Service | Completado |
+| ✅ Engagement Service | Completado |
+| ✅ Notification Service | Completado |
 | ⏳ API Gateway | Pendiente |
 
 ## 👥 Equipo

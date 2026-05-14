@@ -1,3 +1,5 @@
+using MassTransit;
+using NextHappen.Contracts.Events;
 using NextHappen.Engagement.Domain.Entities;
 using NextHappen.Engagement.Domain.Repositories;
 
@@ -7,11 +9,16 @@ public class SavedEventService
 {
     private readonly ISavedEventRepository _repository;
     private readonly IMetricRepository _metricRepo;
+    private readonly IPublishEndpoint _publishEndpoint;
 
-    public SavedEventService(ISavedEventRepository repository, IMetricRepository metricRepo)
+    public SavedEventService(
+        ISavedEventRepository repository,
+        IMetricRepository metricRepo,
+        IPublishEndpoint publishEndpoint)
     {
         _repository = repository;
         _metricRepo = metricRepo;
+        _publishEndpoint = publishEndpoint;
     }
 
     public async Task<bool> SaveEventAsync(Guid userId, Guid eventId)
@@ -28,6 +35,10 @@ public class SavedEventService
             Action = "saved-event",
             Timestamp = DateTime.UtcNow
         });
+
+        // Publish to RabbitMQ → notification-service will consume this
+        await _publishEndpoint.Publish(new EventSavedEvent(
+            eventId, userId, Guid.Empty, DateTime.UtcNow));
 
         return true;
     }
@@ -46,6 +57,10 @@ public class SavedEventService
             Timestamp = DateTime.UtcNow
         });
 
+        // Publish to RabbitMQ
+        await _publishEndpoint.Publish(new EventUnsavedEvent(
+            eventId, userId, Guid.Empty, DateTime.UtcNow));
+
         return true;
     }
 
@@ -56,10 +71,12 @@ public class SavedEventService
 public class MetricService
 {
     private readonly IMetricRepository _repository;
+    private readonly IPublishEndpoint _publishEndpoint;
 
-    public MetricService(IMetricRepository repository)
+    public MetricService(IMetricRepository repository, IPublishEndpoint publishEndpoint)
     {
         _repository = repository;
+        _publishEndpoint = publishEndpoint;
     }
 
     public Task<List<Metric>> GetAllAsync() => _repository.GetAllAsync();
@@ -72,5 +89,13 @@ public class MetricService
             Action = action,
             Timestamp = DateTime.UtcNow
         });
+
+        // Publish event view to RabbitMQ
+        if (action == "view-event")
+        {
+            await _publishEndpoint.Publish(new EventViewedEvent(
+                eventId, Guid.Empty, DateTime.UtcNow));
+        }
     }
 }
+

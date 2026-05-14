@@ -1,0 +1,6 @@
+@NextHappen.Notification_HostAddress = http://localhost:5081
+
+GET {{NextHappen.Notification_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

@@ -1,0 +1,6 @@
+@NextHappen.Event_HostAddress = http://localhost:5168
+
+GET {{NextHappen.Event_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

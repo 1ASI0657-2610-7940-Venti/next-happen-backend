@@ -3,6 +3,9 @@ using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.OpenApi.Models;
+
+
 
 // AssignStands
 using nexthappen_backend.AssignStands.Application.Services;
@@ -71,7 +74,35 @@ builder.Services.AddControllers(options =>
 });
 
 // Swagger
-builder.Services.AddSwaggerGen(options => { options.EnableAnnotations(); });
+builder.Services.AddSwaggerGen(options => 
+{ 
+    options.EnableAnnotations(); 
+    
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Ingresa tu token JWT (no necesitas escribir 'Bearer', solo el token)"
+    });
+
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
+});
 
 // JWT CONFIG
 builder.Services.AddScoped<IPasswordHasher, BCryptPasswordHasher>();

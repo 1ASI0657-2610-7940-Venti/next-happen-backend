@@ -1,4 +1,4 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using System.Text;
 using nexthappen_backend.IAM.Domain.Entities;
 using Microsoft.IdentityModel.Tokens;
@@ -26,6 +26,8 @@ public class JwtTokenGenerator
 
         var claims = new[]
         {
+            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+            new Claim(ClaimTypes.Role, user.Role),
             new Claim("id", user.Id.ToString()),
             new Claim("role", user.Role),
             new Claim("fullName", user.FullName)

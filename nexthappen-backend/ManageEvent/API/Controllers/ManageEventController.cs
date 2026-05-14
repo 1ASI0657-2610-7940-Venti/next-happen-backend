@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using nexthappen_backend.CreateEvent.Application.Contracts;
 using nexthappen_backend.CreateEvent.Domain.Entities;
 using nexthappen_backend.ManageEvent.Application.UseCases;
@@ -28,6 +29,7 @@ public class ManageEventController : ControllerBase
     }
     
     [HttpPut("{id:guid}")]
+    [Authorize(Roles = "Organizer,Admin")]
     public async Task<IActionResult> Update(Guid id, [FromBody] UpdateEventRequest request)
     {
         var result = await _updateHandler.HandleAsync(id, request);
@@ -36,6 +38,7 @@ public class ManageEventController : ControllerBase
 
     
     [HttpDelete("{id:guid}")]
+    [Authorize(Roles = "Organizer,Admin")]
     public async Task<IActionResult> Delete(Guid id)
     {
         bool deleted = await _deleteHandler.HandleAsync(id);

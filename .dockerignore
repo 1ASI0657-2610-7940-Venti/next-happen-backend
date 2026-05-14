@@ -1,0 +1,9 @@
+**/bin
+**/obj
+**/.vs
+**/node_modules
+**/.git
+**/Thumbs.db
+**/*.user
+**/*.suo
+**/appsettings.Development.json

@@ -6,6 +6,8 @@ services:
       dockerfile: services/iam-service/Dockerfile
     container_name: nexthappen-iam-prod
     restart: unless-stopped
+    ports:
+      - "5001:80"
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ConnectionStrings__DefaultConnection=${DB_CONNECTION_IAM}
@@ -20,6 +22,8 @@ services:
       dockerfile: services/event-service/Dockerfile
     container_name: nexthappen-event-prod
     restart: unless-stopped
+    ports:
+      - "5002:80"
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ConnectionStrings__DefaultConnection=${DB_CONNECTION_EVENTS}
@@ -34,6 +38,8 @@ services:
       dockerfile: services/ticket-service/Dockerfile
     container_name: nexthappen-ticket-prod
     restart: unless-stopped
+    ports:
+      - "5003:80"
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ConnectionStrings__DefaultConnection=${DB_CONNECTION_TICKETS}
@@ -48,6 +54,8 @@ services:
       dockerfile: services/engagement-service/Dockerfile
     container_name: nexthappen-engagement-prod
     restart: unless-stopped
+    ports:
+      - "5004:80"
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ConnectionStrings__DefaultConnection=${DB_CONNECTION_ENGAGEMENT}
@@ -66,6 +74,8 @@ services:
       dockerfile: services/notification-service/Dockerfile
     container_name: nexthappen-notification-prod
     restart: unless-stopped
+    ports:
+      - "5005:80"
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ConnectionStrings__DefaultConnection=${DB_CONNECTION_NOTIFICATIONS}

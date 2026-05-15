@@ -9,11 +9,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins(
-                "http://localhost:5173",  // Vite dev
-                "http://localhost:3000",  // Alternate dev
-                "http://localhost:4173"   // Vite preview
-            )
+        policy.SetIsOriginAllowed(_ => true) // Allow any origin (Vercel, Localhost, etc)
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials();

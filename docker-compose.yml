@@ -100,6 +100,7 @@ services:
       - RabbitMQ__Username=${RABBITMQ_USER:-guest}
       - RabbitMQ__Password=${RABBITMQ_PASS:-guest}
       - RabbitMQ__VirtualHost=${RABBITMQ_VHOST:-/}
+      - RabbitMQ__UseSsl=${RABBITMQ_USE_SSL:-false}
     depends_on:
       mysql:
         condition: service_healthy
@@ -123,6 +124,7 @@ services:
       - RabbitMQ__Username=${RABBITMQ_USER:-guest}
       - RabbitMQ__Password=${RABBITMQ_PASS:-guest}
       - RabbitMQ__VirtualHost=${RABBITMQ_VHOST:-/}
+      - RabbitMQ__UseSsl=${RABBITMQ_USE_SSL:-false}
     depends_on:
       mysql:
         condition: service_healthy

@@ -59,8 +59,16 @@ builder.Services.AddMassTransit(x =>
         var host = builder.Configuration["RabbitMQ:Host"] ?? "localhost";
         var virtualHost = builder.Configuration["RabbitMQ:VirtualHost"] ?? "/";
         var useSsl = builder.Configuration.GetValue<bool>("RabbitMQ:UseSsl");
+        ushort port = useSsl ? (ushort)5671 : (ushort)5672;
+
+        if (host.Contains(':'))
+        {
+            var parts = host.Split(':');
+            host = parts[0];
+            ushort.TryParse(parts[1], out port);
+        }
         
-        cfg.Host(host, virtualHost, h =>
+        cfg.Host(host, port, virtualHost, h =>
         {
             h.Username(builder.Configuration["RabbitMQ:Username"] ?? "guest");
             h.Password(builder.Configuration["RabbitMQ:Password"] ?? "guest");

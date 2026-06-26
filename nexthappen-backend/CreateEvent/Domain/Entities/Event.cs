@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using nexthappen_backend.CreateEvent.Domain.ValueObjects;
 
 namespace nexthappen_backend.CreateEvent.Domain.Entities;
@@ -97,4 +97,12 @@ public class Event
     public void UpdatePhotos(List<string> photos) => Photos = photos;
     public void UpdateDateRange(EventDateRange range) => DateRange = range;
     #endregion
+
+    public bool ReserveSeats(int quantity)
+    {
+        if (!Quantity.HasValue) return true; // Si es null, asumimos capacidad infinita
+        if (Quantity < quantity) return false;
+        Quantity -= quantity;
+        return true;
+    }
 }

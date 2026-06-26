@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using nexthappen_backend.CreateEvent.Domain.Entities;
 using nexthappen_backend.Shared.Infrastructure.Persistence.EFC.Configuration;
 
@@ -48,5 +48,30 @@ public class EventRepository : IEventRepository
             .Where(e => e.IsPublic == true)
             .OrderBy(e => e.DateRange.StartDate)
             .ToListAsync();
+    }
+
+    public async Task<bool> ReserveSeatsAsync(Guid id, int quantity)
+    {
+        using var transaction = await _context.Database.BeginTransactionAsync();
+        try
+        {
+            var ev = await _context.Events
+                .FromSqlRaw("SELECT * FROM Events WHERE Id = {0} FOR UPDATE", id)
+                .SingleOrDefaultAsync();
+
+            if (ev == null) return false;
+
+            bool reserved = ev.ReserveSeats(quantity);
+            if (!reserved) return false;
+
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+            return true;
+        }
+        catch
+        {
+            await transaction.RollbackAsync();
+            throw;
+        }
     }
 }

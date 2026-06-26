@@ -1,4 +1,4 @@
-﻿namespace nexthappen_backend.CreateEvent.Domain.Entities;
+namespace nexthappen_backend.CreateEvent.Domain.Entities;
 
 public interface IEventRepository
 {
@@ -9,4 +9,5 @@ public interface IEventRepository
     Task UpdateAsync(Event ev);
     Task DeleteByIdAsync(Guid id);
     Task<IEnumerable<Event>> GetPublicEventsAsync();
+    Task<bool> ReserveSeatsAsync(Guid id, int quantity);
 }

@@ -1,4 +1,4 @@
-﻿using nexthappen_backend.CreateEvent.Domain.Entities;
+using nexthappen_backend.CreateEvent.Domain.Entities;
 using nexthappen_backend.Tickets.Domain.Entities;
 
 namespace nexthappen_backend.Tickets.Application.Services;
@@ -18,6 +18,11 @@ public class TicketsService
     {
         try
         {
+            // Reservar cupo de forma atómica usando bloqueo pesimista
+            bool reserved = await _eventRepo.ReserveSeatsAsync(eventId, quantity);
+            if (!reserved)
+                throw new Exception("No hay suficientes cupos disponibles o el evento no existe.");
+
             var ev = await _eventRepo.GetByIdAsync(eventId);
             if (ev == null)
                 throw new Exception("El evento no existe en la base de datos.");

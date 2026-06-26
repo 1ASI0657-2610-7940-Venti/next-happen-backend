@@ -18,8 +18,12 @@ public class JwtTokenGenerator
 
     public string Generate(User user)
     {
+        var jwtKey = _config["Jwt:Key"] ?? _config["JWT_KEY"] ?? "DefaultSuperSecretKeyForDevelopmentOnly!";
+        var jwtIssuer = _config["Jwt:Issuer"] ?? _config["JWT_ISSUER"];
+        var jwtAudience = _config["Jwt:Audience"] ?? _config["JWT_AUDIENCE"];
+
         var key = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(_config["Jwt:Key"])
+            Encoding.UTF8.GetBytes(jwtKey)
         );
 
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -34,8 +38,8 @@ public class JwtTokenGenerator
         };
 
         var token = new JwtSecurityToken(
-            issuer: _config["Jwt:Issuer"],
-            audience: _config["Jwt:Audience"],
+            issuer: jwtIssuer,
+            audience: jwtAudience,
             claims: claims,
             expires: DateTime.UtcNow.AddHours(3),
             signingCredentials: creds

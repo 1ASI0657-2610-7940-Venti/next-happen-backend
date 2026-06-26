@@ -1,3 +1,4 @@
+using System.Net.Http.Json;
 using NextHappen.Ticket.Domain.Repositories;
 
 namespace NextHappen.Ticket.Application.Services;
@@ -15,7 +16,12 @@ public class TicketService
 
     public async Task<object> PurchaseAsync(Guid eventId, Guid userId, int quantity)
     {
-        // Fetch event price from event-service via HTTP
+        // 1. Reservamos los cupos con bloqueo pesimista en event-service
+        var reserveResponse = await _eventClient.PostAsJsonAsync($"/api/events/{eventId}/reserve", new { Quantity = quantity });
+        if (!reserveResponse.IsSuccessStatusCode)
+            throw new Exception("No hay suficientes cupos disponibles o el evento no existe.");
+
+        // 2. Fetch event price from event-service via HTTP
         var response = await _eventClient.GetAsync($"/api/events/{eventId}");
         if (!response.IsSuccessStatusCode)
             throw new Exception("El evento no existe o no está disponible.");
@@ -51,6 +57,7 @@ public class TicketService
             Tickets = ticketIds
         };
     }
+
 
     public Task<List<Domain.Entities.Ticket>> GetByUserAsync(Guid userId)
         => _ticketRepo.GetByUserIdAsync(userId);

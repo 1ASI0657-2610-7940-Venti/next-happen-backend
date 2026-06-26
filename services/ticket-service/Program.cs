@@ -46,8 +46,10 @@ builder.Services
 // HttpClient for event-service communication
 builder.Services.AddHttpClient("EventService", client =>
 {
-    client.BaseAddress = new Uri("http://localhost:5002");
+    var url = builder.Configuration["Services:EventServiceUrl"] ?? "http://localhost:5002";
+    client.BaseAddress = new Uri(url);
 });
+
 
 builder.Services.AddScoped<ITicketRepository, TicketRepository>();
 builder.Services.AddScoped<TicketService>();

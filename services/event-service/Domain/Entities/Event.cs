@@ -67,4 +67,18 @@ public class Event
         DateRange = dateRange;
         IsPublic = isPublic;
     }
+
+    public void ReserveSeats(int quantity)
+    {
+        if (quantity <= 0)
+            throw new ArgumentException("La cantidad a reservar debe ser mayor que cero.");
+
+        if (Quantity.HasValue)
+        {
+            if (Quantity < quantity)
+                throw new InvalidOperationException("No hay suficientes cupos disponibles.");
+            Quantity -= quantity;
+        }
+    }
 }
+

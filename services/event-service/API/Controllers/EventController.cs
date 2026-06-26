@@ -60,6 +60,17 @@ public class EventController : ControllerBase
         return deleted ? NoContent() : NotFound();
     }
 
+    [HttpPost("{id:guid}/reserve")]
+    public async Task<IActionResult> Reserve(Guid id, [FromBody] ReserveEventRequest request)
+    {
+        var success = await _service.ReserveSeatsAsync(id, request.Quantity);
+        if (!success)
+        {
+            return BadRequest(new { error = "No hay suficientes cupos disponibles o el evento no existe." });
+        }
+        return Ok();
+    }
+
     // ── Helper ──
     private static EventResponse ToResponse(Domain.Entities.Event ev) => new()
     {
@@ -74,6 +85,8 @@ public class EventController : ControllerBase
         Location = ev.Location,
         Photos = ev.Photos,
         StartDate = ev.DateRange.StartDate,
-        EndDate = ev.DateRange.EndDate
+        EndDate = ev.DateRange.EndDate,
+        IsPublic = ev.IsPublic
     };
 }
+

@@ -79,6 +79,8 @@ services:
       - Jwt__Key=uR7kQp2$$z1X!v8BnC4eP9xLfW6mZ3aHs
       - Jwt__Issuer=nexthappen
       - Jwt__Audience=nexthappen-users
+      - Services__EventServiceUrl=http://event-service
+
     depends_on:
       mysql:
         condition: service_healthy

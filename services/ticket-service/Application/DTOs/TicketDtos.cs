@@ -14,6 +14,14 @@ public class CheckoutResponse
     public string CheckoutUrl { get; set; } = string.Empty;
 }
 
+/// <summary>Resultado de confirmar una sesión de pago al volver de Stripe.</summary>
+public class ConfirmResult
+{
+    public string Status { get; set; } = string.Empty; // Pending | Paid | Failed
+    public int Quantity { get; set; }
+    public bool Paid => Status == "Paid";
+}
+
 /// <summary>Solicitud de validación de una entrada en la puerta.</summary>
 public class ValidateTicketRequest
 {

@@ -56,6 +56,40 @@ public class PaymentController : ControllerBase
     }
 
     /// <summary>
+    /// Confirma el pago al volver de Stripe (respaldo del webhook). Consulta la sesión
+    /// en Stripe y emite las entradas si el cobro se completó. Idempotente.
+    /// </summary>
+    [HttpGet("confirm")]
+    [Authorize]
+    public async Task<IActionResult> Confirm([FromQuery(Name = "session_id")] string sessionId)
+    {
+        if (string.IsNullOrWhiteSpace(sessionId))
+            return BadRequest(new { error = "session_id es requerido." });
+
+        var userId = GetUserId();
+        if (userId == Guid.Empty) return Unauthorized(new { error = "Sesión inválida." });
+
+        try
+        {
+            var result = await _payments.ConfirmSessionAsync(sessionId, userId, User.IsInRole("Admin"));
+            return Ok(result);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, new { error = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+        catch (StripeException ex)
+        {
+            _logger.LogError(ex, "[Stripe] Error confirmando la sesión {SessionId}", sessionId);
+            return StatusCode(StatusCodes.Status502BadGateway, new { error = "No se pudo confirmar el pago." });
+        }
+    }
+
+    /// <summary>
     /// Endpoint público que recibe los webhooks de Stripe. La autenticidad se verifica
     /// mediante la firma (Stripe-Signature), no con JWT.
     /// </summary>

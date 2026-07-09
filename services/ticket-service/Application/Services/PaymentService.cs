@@ -153,13 +153,41 @@ public class PaymentService
             _logger.LogWarning("[Stripe] Pago recibido para una sesión desconocida {SessionId}", session.Id);
             return;
         }
+        await MarkOrderPaidAndIssueTicketsAsync(order, session.PaymentIntentId);
+    }
 
-        // Idempotencia: si ya está pagado, no re-emitir entradas.
+    /// <summary>
+    /// Confirma el pago consultando la sesión directamente en Stripe y emite las entradas
+    /// si el cobro se completó. Sirve de respaldo a los webhooks (p. ej. al volver de Stripe
+    /// a la página de éxito), de modo que la compra funcione aunque el webhook no llegue.
+    /// Es idempotente: no duplica entradas si el webhook ya las emitió.
+    /// </summary>
+    public async Task<ConfirmResult> ConfirmSessionAsync(string sessionId, Guid requesterId, bool isAdmin)
+    {
+        var order = await _orderRepo.GetBySessionIdAsync(sessionId)
+            ?? throw new InvalidOperationException("No se encontró el pedido de esta sesión.");
+
+        if (!isAdmin && order.UserId != requesterId)
+            throw new UnauthorizedAccessException("Este pago no te pertenece.");
+
+        if (order.Status != OrderStatus.Paid)
+        {
+            var session = await new SessionService().GetAsync(sessionId);
+            if (session.PaymentStatus == "paid")
+                await MarkOrderPaidAndIssueTicketsAsync(order, session.PaymentIntentId);
+        }
+
+        return new ConfirmResult { Status = order.Status, Quantity = order.Quantity };
+    }
+
+    /// <summary>Marca el pedido como pagado y emite las entradas. Idempotente.</summary>
+    private async Task MarkOrderPaidAndIssueTicketsAsync(Order order, string? paymentIntentId)
+    {
         if (order.Status == OrderStatus.Paid) return;
 
         order.Status = OrderStatus.Paid;
         order.PaidAt = DateTime.UtcNow;
-        order.StripePaymentIntentId = session.PaymentIntentId;
+        order.StripePaymentIntentId = paymentIntentId;
         await _orderRepo.UpdateAsync(order);
 
         var tickets = await _ticketService.IssueTicketsForOrderAsync(order);

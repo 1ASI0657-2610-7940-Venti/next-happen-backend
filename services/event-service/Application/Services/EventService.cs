@@ -61,6 +61,9 @@ public class EventService
     public async Task<bool> ReserveSeatsAsync(Guid id, int quantity)
         => await _repository.ReserveSeatsAsync(id, quantity);
 
+    public async Task<bool> ReleaseSeatsAsync(Guid id, int quantity)
+        => await _repository.ReleaseSeatsAsync(id, quantity);
+
     public async Task<bool> DeleteAsync(Guid id)
     {
         var existing = await _repository.GetByIdAsync(id);

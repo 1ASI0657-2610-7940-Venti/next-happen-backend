@@ -80,5 +80,17 @@ public class Event
             Quantity -= quantity;
         }
     }
+
+    /// <summary>
+    /// Devuelve cupos al inventario (p. ej. cuando un pago expira o se reembolsa una entrada).
+    /// </summary>
+    public void ReleaseSeats(int quantity)
+    {
+        if (quantity <= 0)
+            throw new ArgumentException("La cantidad a liberar debe ser mayor que cero.");
+
+        if (Quantity.HasValue)
+            Quantity += quantity;
+    }
 }
 

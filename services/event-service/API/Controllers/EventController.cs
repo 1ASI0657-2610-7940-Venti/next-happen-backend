@@ -105,6 +105,18 @@ public class EventController : ControllerBase
         return Ok();
     }
 
+    // Libera cupos previamente reservados (uso interno: pago expirado o reembolso).
+    [HttpPost("{id:guid}/release")]
+    public async Task<IActionResult> Release(Guid id, [FromBody] ReserveEventRequest request)
+    {
+        var success = await _service.ReleaseSeatsAsync(id, request.Quantity);
+        if (!success)
+        {
+            return BadRequest(new { error = "No se pudieron liberar los cupos o el evento no existe." });
+        }
+        return Ok();
+    }
+
     // ── Helper ──
     private static EventResponse ToResponse(Domain.Entities.Event ev) => new()
     {

@@ -1,0 +1,41 @@
+name: Backend CI
+
+on:
+  push:
+    branches: [ master, main, develop ]
+  pull_request:
+    branches: [ master, main, develop ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Restore
+        run: dotnet restore NextHappen.sln
+
+      - name: Build
+        run: dotnet build NextHappen.sln --configuration Release --no-restore
+
+      - name: Test
+        run: |
+          if ls **/*Tests*.csproj 1> /dev/null 2>&1; then
+            dotnet test NextHappen.sln --configuration Release --no-build --verbosity normal
+          else
+            echo "No test projects found — skipping."
+          fi
+
+  docker-compose-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate docker-compose files
+        run: |
+          docker compose -f docker-compose.yml config > /dev/null
+          docker compose -f docker-compose.prod.yml config > /dev/null || true

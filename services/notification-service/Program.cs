@@ -50,7 +50,11 @@ builder.Services
 
 builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
 
-builder.Services.AddCors(o => o.AddPolicy("AllowAll", p => p.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod()));
+// ── CORS (configurable whitelist) ──
+var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
+    ?? new[] { "http://localhost:5173", "http://localhost:4173" };
+builder.Services.AddCors(o => o.AddPolicy("AllowAll", p =>
+    p.WithOrigins(allowedOrigins).AllowAnyHeader().AllowAnyMethod().AllowCredentials()));
 
 // ── RabbitMQ (MassTransit) — Consumers ──
 builder.Services.AddMassTransit(x =>
@@ -58,6 +62,7 @@ builder.Services.AddMassTransit(x =>
     x.AddConsumer<EventSavedConsumer>();
     x.AddConsumer<EventUnsavedConsumer>();
     x.AddConsumer<EventViewedConsumer>();
+    x.AddConsumer<TicketPurchasedConsumer>();
 
     x.UsingRabbitMq((context, cfg) =>
     {
@@ -99,13 +104,27 @@ builder.Services.AddDbContext<NotificationDbContext>(options =>
 
 var app = builder.Build();
 
-using (var scope = app.Services.CreateScope())
+// ── Database initialization (dev convenience; disable in prod with Database:AutoCreate=false) ──
+if (app.Configuration.GetValue("Database:AutoCreate", true))
 {
-    try { scope.ServiceProvider.GetRequiredService<NotificationDbContext>().Database.EnsureCreated(); }
-    catch (Exception ex) { Console.WriteLine($"[Notification] Migration Error: {ex.Message}"); }
+    using var scope = app.Services.CreateScope();
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+    try
+    {
+        scope.ServiceProvider.GetRequiredService<NotificationDbContext>().Database.EnsureCreated();
+    }
+    catch (Exception ex)
+    {
+        logger.LogCritical(ex, "[Notification] Database initialization failed");
+        throw;
+    }
 }
 
 app.MapGet("/", () => Results.Ok("NextHappen Notification Service is running"));
+app.MapGet("/health", async (NotificationDbContext db) =>
+    await db.Database.CanConnectAsync()
+        ? Results.Ok(new { status = "healthy" })
+        : Results.StatusCode(StatusCodes.Status503ServiceUnavailable));
 app.UseCors("AllowAll");
 app.UseSwagger();
 app.UseSwaggerUI();

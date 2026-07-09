@@ -13,14 +13,18 @@ nexthappen-platform/
 ├── services/
 │   ├── iam-service/                  # Autenticación y usuarios
 │   ├── event-service/                # CRUD de eventos y stands
-│   ├── ticket-service/               # Compra de tickets (próximo)
-│   ├── engagement-service/           # Guardados y métricas (próximo)
-│   └── notification-service/         # Notificaciones (próximo)
-├── gateway/                          # API Gateway (próximo)
-├── nexthappen-backend/               # Monolito original (legacy)
+│   ├── ticket-service/               # Compra de tickets
+│   ├── engagement-service/           # Guardados y métricas
+│   └── notification-service/         # Notificaciones
+├── gateway/                          # API Gateway (YARP + JWT + rate limiting)
 ├── NextHappen.sln                    # Solución .NET
-└── docker-compose.yml                # Orquestación local (próximo)
+├── docker-compose.yml                # Orquestación local (dev)
+└── docker-compose.prod.yml           # Orquestación producción
 ```
+
+> El monolito original (`nexthappen-backend/`) fue **eliminado**: toda su
+> funcionalidad ya está cubierta por los microservicios (los contextos de
+> Metrics y SavedEvents viven en `engagement-service`).
 
 ## 🔧 Tech Stack
 
@@ -32,7 +36,8 @@ nexthappen-platform/
 | Auth | JWT (Bearer Token) |
 | Documentación API | Swagger (Swashbuckle) |
 | Frontend | Vue.js 3 + Vite |
-| Mensajería | RabbitMQ (próximo) |
+| Mensajería | RabbitMQ + MassTransit |
+| Gateway | YARP + JWT perimetral + Rate limiting |
 
 ## 📦 Microservicios
 
@@ -186,19 +191,11 @@ dotnet run
 
 > **Tip:** Inicia primero todos los microservicios y luego el gateway. El frontend solo necesita conectarse a `http://localhost:5000`.
 
-### Correr el monolito original (legacy)
-
-```bash
-cd nexthappen-backend
-dotnet run
-# Corre en http://localhost:5022
-```
-
 ### Acceder a Swagger UI
 
 - **IAM Service:** http://localhost:5001/swagger
 - **Event Service:** http://localhost:5002/swagger
-- **Monolito (legacy):** http://localhost:5022/swagger
+- Cada microservicio expone su propio `/swagger` y un `/health` (chequeo de BD).
 
 ## 🔐 Autenticación
 
@@ -207,6 +204,45 @@ Todos los servicios comparten la misma clave JWT, lo que significa que un token 
 **Flujo:**
 1. `POST /api/auth/login` en `iam-service` → Recibe un JWT
 2. Usar ese JWT en el header `Authorization: Bearer <token>` para endpoints protegidos en cualquier servicio
+
+El **API Gateway también valida el JWT** en el perímetro para las rutas sensibles
+(`/api/users`, `/api/stands`, `/api/tickets`, `/api/*/saved-events`, `/api/notifications`),
+mediante la política de autorización `authenticated`. Las rutas públicas
+(`/api/auth`, `GET /api/events`, `/api/metrics`) permanecen abiertas. Los
+microservicios mantienen su propia validación como defensa en profundidad.
+
+## 🔐 Seguridad y configuración (IMPORTANTE)
+
+**Ningún secreto real se versiona en el repositorio.** Los `appsettings.json`
+solo contienen valores de **desarrollo** (clave JWT `DEV_ONLY_...`, `password=admin`
+local, RabbitMQ `guest`). En producción, TODO se inyecta por variables de entorno.
+
+### Puesta en marcha
+
+```bash
+cp .env.example .env      # completa valores reales; .env está en .gitignore
+docker-compose up --build # dev: usa defaults si no defines .env
+```
+
+Variables clave (ver `.env.example`): `MYSQL_ROOT_PASSWORD`, `JWT_KEY` (≥32 bytes,
+idéntica en todos los servicios y el gateway), `JWT_ISSUER`, `JWT_AUDIENCE`,
+`FRONTEND_ORIGIN` (CORS), credenciales `RABBITMQ_*`, y para prod las cadenas
+`DB_CONNECTION_*`. Genera la clave JWT con `openssl rand -base64 48`.
+
+### ⚠️ Rotar credenciales expuestas
+
+Estas credenciales estuvieron commiteadas en el historial de git y **deben rotarse**:
+la clave JWT anterior, la contraseña de MySQL, las credenciales de CloudAMQP
+(`moose.rmq.cloudamqp.com`) y la API key de Google Maps del frontend.
+
+### Otras medidas aplicadas
+
+- **CORS** con whitelist configurable (`Cors:AllowedOrigins`), no `AllowAnyOrigin`.
+- **Rate limiting** en el gateway (100 req/min por IP).
+- **Init de BD**: `EnsureCreated()` sólo si `Database:AutoCreate=true`; en fallo hace
+  *fail-fast* (relanza la excepción) en vez de arrancar con una BD rota. En prod,
+  ponlo en `false` y aplica migraciones EF de forma controlada (pendiente de adoptar).
+- **`/health`** por servicio (verifica conexión a la BD) → útil para orquestadores.
 
 ## 🌿 Gitflow
 
@@ -227,9 +263,9 @@ docs(scope): descripción
 
 ## 📝 Frontend
 
-El frontend (Vue.js) se encuentra en una carpeta separada y se conecta al backend a través de la variable de entorno `VITE_API_URL`. Actualmente apunta al monolito en `http://localhost:5022`.
-
-> **Nota:** Durante la migración a microservicios, el frontend continuará usando el monolito. Una vez que se implemente el API Gateway, solo será necesario cambiar `VITE_API_URL` a la URL del gateway.
+El frontend (Vue.js) se encuentra en una carpeta separada y se conecta al backend
+a través de la variable de entorno `VITE_API_URL`, que apunta al **API Gateway**
+(`http://localhost:5000` en desarrollo).
 
 ## 📋 Estado de la Migración
 

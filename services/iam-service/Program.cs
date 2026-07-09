@@ -84,14 +84,17 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<RegisterUser>();
 builder.Services.AddScoped<LoginUser>();
 
-// ── CORS ──
+// ── CORS (configurable whitelist) ──
+var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
+    ?? new[] { "http://localhost:5173", "http://localhost:4173" };
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
     {
-        policy.AllowAnyOrigin()
+        policy.WithOrigins(allowedOrigins)
               .AllowAnyHeader()
-              .AllowAnyMethod();
+              .AllowAnyMethod()
+              .AllowCredentials();
     });
 });
 
@@ -108,22 +111,28 @@ builder.Services.AddDbContext<IamDbContext>(options =>
 
 var app = builder.Build();
 
-// ── Auto-migrate ──
-using (var scope = app.Services.CreateScope())
+// ── Database initialization (dev convenience; disable in prod with Database:AutoCreate=false) ──
+if (app.Configuration.GetValue("Database:AutoCreate", true))
 {
+    using var scope = app.Services.CreateScope();
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
     try
     {
-        var db = scope.ServiceProvider.GetRequiredService<IamDbContext>();
-        db.Database.EnsureCreated();
+        scope.ServiceProvider.GetRequiredService<IamDbContext>().Database.EnsureCreated();
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"[IAM] Migration Error: {ex.Message}");
+        logger.LogCritical(ex, "[IAM] Database initialization failed");
+        throw;
     }
 }
 
 // ── Pipeline ──
 app.MapGet("/", () => Results.Ok("NextHappen IAM Service is running"));
+app.MapGet("/health", async (IamDbContext db) =>
+    await db.Database.CanConnectAsync()
+        ? Results.Ok(new { status = "healthy" })
+        : Results.StatusCode(StatusCodes.Status503ServiceUnavailable));
 
 app.UseCors("AllowAll");
 app.UseSwagger();

@@ -11,6 +11,7 @@ public interface IEventRepository
     Task UpdateAsync(Entities.Event ev);
     Task DeleteByIdAsync(Guid id);
     Task<bool> ReserveSeatsAsync(Guid id, int quantity);
+    Task<bool> ReleaseSeatsAsync(Guid id, int quantity);
     Task SaveChangesAsync();
 }
 

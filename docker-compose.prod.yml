@@ -46,6 +46,17 @@ services:
       - Jwt__Key=${JWT_KEY}
       - Jwt__Issuer=${JWT_ISSUER}
       - Jwt__Audience=${JWT_AUDIENCE}
+      - Cors__AllowedOrigins__0=${FRONTEND_ORIGIN}
+      - Services__EventServiceUrl=http://event-service
+      - Stripe__SecretKey=${STRIPE_SECRET_KEY}
+      - Stripe__WebhookSecret=${STRIPE_WEBHOOK_SECRET}
+      - Stripe__Currency=${STRIPE_CURRENCY:-pen}
+      - Stripe__FrontendBaseUrl=${FRONTEND_ORIGIN}
+      - RabbitMQ__Host=${RABBITMQ_HOST}
+      - RabbitMQ__Username=${RABBITMQ_USER}
+      - RabbitMQ__Password=${RABBITMQ_PASS}
+      - RabbitMQ__VirtualHost=${RABBITMQ_VHOST:-/}
+      - RabbitMQ__UseSsl=${RABBITMQ_USE_SSL:-false}
 
   # ── Engagement Service ──
   engagement-service:
@@ -100,6 +111,10 @@ services:
       - "80:80" # Expone el puerto 80 al internet
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
+      - Jwt__Key=${JWT_KEY}
+      - Jwt__Issuer=${JWT_ISSUER}
+      - Jwt__Audience=${JWT_AUDIENCE}
+      - Cors__AllowedOrigins__0=${FRONTEND_ORIGIN}
       - ReverseProxy__Clusters__iam-cluster__Destinations__iam-service__Address=http://iam-service:80
       - ReverseProxy__Clusters__event-cluster__Destinations__event-service__Address=http://event-service:80
       - ReverseProxy__Clusters__ticket-cluster__Destinations__ticket-service__Address=http://ticket-service:80

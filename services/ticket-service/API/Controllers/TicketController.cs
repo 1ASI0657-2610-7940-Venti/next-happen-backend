@@ -10,10 +10,10 @@ namespace NextHappen.Ticket.API.Controllers;
 [ApiController]
 public class TicketController : ControllerBase
 {
-    private readonly TicketService _service;
+    private readonly ITicketService _service;
     private readonly PaymentService _payments;
 
-    public TicketController(TicketService service, PaymentService payments)
+    public TicketController(ITicketService service, PaymentService payments)
     {
         _service = service;
         _payments = payments;

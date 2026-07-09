@@ -302,4 +302,184 @@ public class PaymentServiceTests
 
         Assert.Contains("ya utilizada", exception.Message);
     }
+
+    // ── Idempotencia ──
+
+    [Fact]
+    [Trait("Category", "Unit")]
+    public async Task HandleStripeEventAsync_CheckoutCompleted_ShouldBeIdempotent_WhenCalledTwice()
+    {
+        var order = new Order { Id = Guid.NewGuid(), Status = OrderStatus.Pending };
+        _orderRepoMock.Setup(r => r.GetBySessionIdAsync("cs_test")).ReturnsAsync(order);
+        _ticketServiceMock.Setup(s => s.IssueTicketsForOrderAsync(order))
+            .ReturnsAsync(new List<Domain.Entities.Ticket>
+            {
+                new Domain.Entities.Ticket { Id = Guid.NewGuid(), EventId = order.EventId, UserId = order.UserId }
+            });
+
+        var stripeEvent = new Stripe.Event
+        {
+            Type = "checkout.session.completed",
+            Data = new Stripe.EventData
+            {
+                Object = new Session { Id = "cs_test", PaymentIntentId = "pi_test" }
+            }
+        };
+
+        // Primera llamada — procesa el pago
+        await _service.HandleStripeEventAsync(stripeEvent);
+        Assert.Equal(OrderStatus.Paid, order.Status);
+
+        // Segunda llamada — idempotente, no debe duplicar nada
+        await _service.HandleStripeEventAsync(stripeEvent);
+
+        _orderRepoMock.Verify(r => r.UpdateAsync(order), Times.Once);
+        _ticketServiceMock.Verify(s => s.IssueTicketsForOrderAsync(order), Times.Once);
+        _publishMock.Verify(p => p.Publish(It.IsAny<TicketPurchasedEvent>(), default), Times.Once);
+    }
+
+    [Fact]
+    [Trait("Category", "Unit")]
+    public async Task HandleStripeEventAsync_CheckoutCompleted_ShouldHandle_WhenOrderNotFound()
+    {
+        _orderRepoMock.Setup(r => r.GetBySessionIdAsync("unknown")).ReturnsAsync((Order?)null);
+
+        var stripeEvent = new Stripe.Event
+        {
+            Type = "checkout.session.completed",
+            Data = new Stripe.EventData
+            {
+                Object = new Session { Id = "unknown" }
+            }
+        };
+
+        // No debe lanzar excepción
+        await _service.HandleStripeEventAsync(stripeEvent);
+
+        _orderRepoMock.Verify(r => r.UpdateAsync(It.IsAny<Order>()), Times.Never);
+        _ticketServiceMock.Verify(s => s.IssueTicketsForOrderAsync(It.IsAny<Order>()), Times.Never);
+    }
+
+    [Fact]
+    [Trait("Category", "Unit")]
+    public async Task HandleStripeEventAsync_CheckoutExpired_ShouldBeIdempotent_WhenAlreadyFailed()
+    {
+        var order = new Order
+        {
+            Id = Guid.NewGuid(),
+            Status = OrderStatus.Failed,
+            Quantity = 2
+        };
+        _orderRepoMock.Setup(r => r.GetBySessionIdAsync("cs_expired")).ReturnsAsync(order);
+
+        var stripeEvent = new Stripe.Event
+        {
+            Type = "checkout.session.expired",
+            Data = new Stripe.EventData
+            {
+                Object = new Session { Id = "cs_expired" }
+            }
+        };
+
+        await _service.HandleStripeEventAsync(stripeEvent);
+
+        _orderRepoMock.Verify(r => r.UpdateAsync(order), Times.Never);
+        _eventsMock.Verify(e => e.ReleaseSeatsAsync(It.IsAny<Guid>(), It.IsAny<int>()), Times.Never);
+    }
+
+    [Fact]
+    [Trait("Category", "Unit")]
+    public async Task HandleStripeEventAsync_UnknownEventType_ShouldLogAndIgnore()
+    {
+        var stripeEvent = new Stripe.Event
+        {
+            Type = "payment_intent.succeeded",
+            Data = new Stripe.EventData
+            {
+                Object = new Session { Id = "cs_unknown" }
+            }
+        };
+
+        await _service.HandleStripeEventAsync(stripeEvent);
+
+        _orderRepoMock.Verify(r => r.GetBySessionIdAsync(It.IsAny<string>()), Times.Never);
+        _orderRepoMock.Verify(r => r.UpdateAsync(It.IsAny<Order>()), Times.Never);
+    }
+
+    [Fact]
+    [Trait("Category", "Unit")]
+    public async Task ConfirmSessionAsync_ShouldBeIdempotent_WhenOrderAlreadyPaid()
+    {
+        var order = new Order
+        {
+            Id = Guid.NewGuid(),
+            UserId = Guid.NewGuid(),
+            Status = OrderStatus.Paid,
+            Quantity = 1
+        };
+        _orderRepoMock.Setup(r => r.GetBySessionIdAsync("cs_test")).ReturnsAsync(order);
+
+        var result = await _service.ConfirmSessionAsync("cs_test", order.UserId, false);
+
+        Assert.Equal(OrderStatus.Paid, result.Status);
+        _sessionServiceMock.Verify(s => s.GetAsync(It.IsAny<string>()), Times.Never);
+        _ticketServiceMock.Verify(s => s.IssueTicketsForOrderAsync(It.IsAny<Order>()), Times.Never);
+    }
+
+    // ── Refund edge cases ──
+
+    [Fact]
+    [Trait("Category", "Unit")]
+    public async Task RefundTicketAsync_ShouldThrow_WhenNoPaymentIntent()
+    {
+        var ticket = new Domain.Entities.Ticket
+        {
+            Id = Guid.NewGuid(),
+            UserId = Guid.NewGuid(),
+            Status = TicketStatus.Active,
+            OrderId = Guid.NewGuid()
+        };
+        var order = new Order
+        {
+            Id = ticket.OrderId,
+            StripePaymentIntentId = null
+        };
+        _ticketRepoMock.Setup(r => r.GetByIdAsync(ticket.Id)).ReturnsAsync(ticket);
+        _orderRepoMock.Setup(r => r.GetByIdAsync(ticket.OrderId)).ReturnsAsync(order);
+
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            _service.RefundTicketAsync(ticket.Id, ticket.UserId, false));
+
+        Assert.Contains("sin PaymentIntent", exception.Message);
+        _refundServiceMock.Verify(r => r.CreateAsync(It.IsAny<RefundCreateOptions>()), Times.Never);
+    }
+
+    [Fact]
+    [Trait("Category", "Unit")]
+    public async Task RefundTicketAsync_ShouldThrow_WhenTicketNotFound()
+    {
+        var ticketId = Guid.NewGuid();
+        _ticketRepoMock.Setup(r => r.GetByIdAsync(ticketId)).ReturnsAsync((Domain.Entities.Ticket?)null);
+
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            _service.RefundTicketAsync(ticketId, Guid.NewGuid(), false));
+
+        Assert.Contains("no encontrada", exception.Message);
+    }
+
+    [Fact]
+    [Trait("Category", "Unit")]
+    public async Task RefundTicketAsync_ShouldThrow_WhenUnauthorized()
+    {
+        var ticket = new Domain.Entities.Ticket
+        {
+            Id = Guid.NewGuid(),
+            UserId = Guid.NewGuid(),
+            Status = TicketStatus.Active
+        };
+        _ticketRepoMock.Setup(r => r.GetByIdAsync(ticket.Id)).ReturnsAsync(ticket);
+
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
+            _service.RefundTicketAsync(ticket.Id, Guid.NewGuid(), false));
+    }
 }

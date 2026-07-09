@@ -12,6 +12,10 @@ namespace NextHappen.Ticket.Application.Services;
 public interface ITicketService
 {
     Task<List<Domain.Entities.Ticket>> IssueTicketsForOrderAsync(Order order);
+    Task<List<Domain.Entities.Ticket>> GetByUserAsync(Guid userId);
+    Task<List<EventTicketRow>> GetEventTicketsAsync(Guid eventId);
+    Task<Domain.Entities.Ticket?> GetByIdAsync(Guid ticketId);
+    Task<ValidateTicketResponse> ValidateAsync(string code);
 }
 
 public class TicketService : ITicketService

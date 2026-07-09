@@ -71,8 +71,7 @@ public class TicketIntegrationTests : IClassFixture<WebApplicationFactory<Progra
 
                 // Register concrete TicketService for controller resolution
                 services.AddScoped<TicketService>(sp =>
-                    sp.GetRequiredService<ITicketService>() as TicketService
-                    ?? ActivatorUtilities.CreateInstance<TicketService>(sp));
+                    (TicketService)sp.GetRequiredService<ITicketService>());
             });
         });
         _client = _factory.CreateClient();
@@ -144,5 +143,17 @@ public class TicketIntegrationTests : IClassFixture<WebApplicationFactory<Progra
             new ValidateTicketRequest { QrCode = "TEST" });
 
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+    }
+
+    [Fact]
+    [Trait("Category", "Integration")]
+    public async Task Webhook_ShouldReturnBadRequest_WhenInvalidSignature()
+    {
+        var json = "{\"type\":\"checkout.session.completed\"}";
+        var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+        var response = await _client.PostAsync("/api/payments/webhook", content);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 }

@@ -264,4 +264,45 @@ public class TicketServiceTests
         Assert.False(result.Valid);
         Assert.Contains("Ingresa un código", result.Message);
     }
+
+    [Fact]
+    [Trait("Category", "Unit")]
+    public async Task ValidateAsync_ShouldNormalizeShortCode_WhenLowerCase()
+    {
+        var shortCode = "7K4P9Q";
+        var ticket = new Domain.Entities.Ticket { Status = TicketStatus.Active, QrCode = "QR", ShortCode = shortCode };
+        _repoMock.Setup(r => r.GetByQrCodeAsync("7k4p9q")).ReturnsAsync((Domain.Entities.Ticket?)null);
+        _repoMock.Setup(r => r.GetByShortCodeAsync(shortCode)).ReturnsAsync(ticket);
+
+        var result = await _service.ValidateAsync("7k4p9q");
+
+        Assert.True(result.Valid);
+    }
+
+    [Fact]
+    [Trait("Category", "Unit")]
+    public async Task ValidateAsync_ShouldNormalizeShortCode_WhenHasInvalidChars()
+    {
+        var shortCode = "7K4P9Q";
+        var ticket = new Domain.Entities.Ticket { Status = TicketStatus.Active, QrCode = "QR", ShortCode = shortCode };
+        _repoMock.Setup(r => r.GetByQrCodeAsync("7K4-P9Q!")).ReturnsAsync((Domain.Entities.Ticket?)null);
+        _repoMock.Setup(r => r.GetByShortCodeAsync(shortCode)).ReturnsAsync(ticket);
+
+        var result = await _service.ValidateAsync("7K4-P9Q!");
+
+        Assert.True(result.Valid);
+    }
+
+    [Fact]
+    [Trait("Category", "Unit")]
+    public async Task ValidateAsync_ShouldReturnNotFound_WhenNormalizedIsEmpty()
+    {
+        _repoMock.Setup(r => r.GetByQrCodeAsync("!!!")).ReturnsAsync((Domain.Entities.Ticket?)null);
+
+        var result = await _service.ValidateAsync("!!!");
+
+        Assert.False(result.Valid);
+        Assert.Contains("no encontrada", result.Message);
+        _repoMock.Verify(r => r.GetByShortCodeAsync(It.IsAny<string>()), Times.Never);
+    }
 }

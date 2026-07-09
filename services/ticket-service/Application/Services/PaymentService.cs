@@ -224,7 +224,7 @@ public class PaymentService
     /// <summary>
     /// Reembolsa una entrada individual vía Stripe, la marca como Refunded y libera su cupo.
     /// </summary>
-    public async Task RefundTicketAsync(Guid ticketId, Guid requesterId, bool isAdmin)
+    public virtual async Task RefundTicketAsync(Guid ticketId, Guid requesterId, bool isAdmin)
     {
         var ticket = await _ticketRepo.GetByIdAsync(ticketId)
             ?? throw new InvalidOperationException("Entrada no encontrada.");

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using NextHappen.Notification.Domain.Entities;
 using NextHappen.Notification.Infrastructure.Persistence;
 using Xunit;
 
@@ -27,7 +28,7 @@ public class NotificationIntegrationTests : IClassFixture<WebApplicationFactory<
 
                 services.AddDbContext<NotificationDbContext>(options =>
                 {
-                    options.UseInMemoryDatabase("TestNotificationDb_" + Guid.NewGuid().ToString());
+                    options.UseInMemoryDatabase("TestNotificationDb");
                 });
             });
         });
@@ -38,7 +39,6 @@ public class NotificationIntegrationTests : IClassFixture<WebApplicationFactory<
     [Trait("Category", "Integration")]
     public async Task CreateNotification_ShouldReturnOk()
     {
-        // Arrange
         var request = new
         {
             UserId = Guid.NewGuid(),
@@ -46,10 +46,54 @@ public class NotificationIntegrationTests : IClassFixture<WebApplicationFactory<
             Message = "Integration test message"
         };
 
-        // Act
         var response = await _client.PostAsJsonAsync("/api/notifications", request);
 
-        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+
+    [Fact]
+    [Trait("Category", "Integration")]
+    public async Task GetByUser_ShouldReturnNotifications()
+    {
+        var userId = Guid.NewGuid();
+        var eventId = Guid.NewGuid();
+
+        await _client.PostAsJsonAsync("/api/notifications", new { UserId = userId, EventId = eventId, Message = "Notif 1" });
+        await _client.PostAsJsonAsync("/api/notifications", new { UserId = userId, EventId = eventId, Message = "Notif 2" });
+
+        var response = await _client.GetAsync($"/api/notifications/{userId}");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var notifications = await response.Content.ReadFromJsonAsync<List<Domain.Entities.Notification>>();
+        Assert.NotNull(notifications);
+        Assert.Equal(2, notifications.Count);
+    }
+
+    [Fact]
+    [Trait("Category", "Integration")]
+    public async Task GetByUser_ShouldReturnEmpty_WhenNoNotifications()
+    {
+        var userId = Guid.NewGuid();
+
+        var response = await _client.GetAsync($"/api/notifications/{userId}");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var notifications = await response.Content.ReadFromJsonAsync<List<Domain.Entities.Notification>>();
+        Assert.Empty(notifications!);
+    }
+
+    [Fact]
+    [Trait("Category", "Integration")]
+    public async Task MarkAsRead_ShouldReturnOk()
+    {
+        var userId = Guid.NewGuid();
+        var eventId = Guid.NewGuid();
+        var createResponse = await _client.PostAsJsonAsync("/api/notifications", new { UserId = userId, EventId = eventId, Message = "Test" });
+        var created = await createResponse.Content.ReadFromJsonAsync<Domain.Entities.Notification>();
+        Assert.NotNull(created);
+
+        var response = await _client.PostAsync($"/api/notifications/{created.Id}/read", null);
+
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 }

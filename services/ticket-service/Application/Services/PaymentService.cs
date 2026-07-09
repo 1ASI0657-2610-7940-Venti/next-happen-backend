@@ -20,18 +20,22 @@ public class PaymentService
 {
     private readonly IOrderRepository _orderRepo;
     private readonly ITicketRepository _ticketRepo;
-    private readonly TicketService _ticketService;
-    private readonly EventCatalogClient _events;
+    private readonly ITicketService _ticketService;
+    private readonly IEventCatalogClient _events;
     private readonly IPublishEndpoint _publish;
+    private readonly ISessionService _sessionService;
+    private readonly IRefundService _refundService;
     private readonly StripeOptions _stripe;
     private readonly ILogger<PaymentService> _logger;
 
     public PaymentService(
         IOrderRepository orderRepo,
         ITicketRepository ticketRepo,
-        TicketService ticketService,
-        EventCatalogClient events,
+        ITicketService ticketService,
+        IEventCatalogClient events,
         IPublishEndpoint publish,
+        ISessionService sessionService,
+        IRefundService refundService,
         IOptions<StripeOptions> stripe,
         ILogger<PaymentService> logger)
     {
@@ -40,6 +44,8 @@ public class PaymentService
         _ticketService = ticketService;
         _events = events;
         _publish = publish;
+        _sessionService = sessionService;
+        _refundService = refundService;
         _stripe = stripe.Value;
         _logger = logger;
     }
@@ -109,7 +115,7 @@ public class PaymentService
                 }
             };
 
-            var session = await new SessionService().CreateAsync(options);
+            var session = await _sessionService.CreateAsync(options);
             order.StripeSessionId = session.Id;
             await _orderRepo.AddAsync(order);
 
@@ -172,7 +178,7 @@ public class PaymentService
 
         if (order.Status != OrderStatus.Paid)
         {
-            var session = await new SessionService().GetAsync(sessionId);
+            var session = await _sessionService.GetAsync(sessionId);
             if (session.PaymentStatus == "paid")
                 await MarkOrderPaidAndIssueTicketsAsync(order, session.PaymentIntentId);
         }
@@ -237,7 +243,7 @@ public class PaymentService
             throw new InvalidOperationException("El pago no puede reembolsarse (sin PaymentIntent).");
 
         // Reembolso parcial: el importe de una sola entrada.
-        await new RefundService().CreateAsync(new RefundCreateOptions
+        await _refundService.CreateAsync(new RefundCreateOptions
         {
             PaymentIntent = order.StripePaymentIntentId,
             Amount = ToMinorUnits(ticket.Price)

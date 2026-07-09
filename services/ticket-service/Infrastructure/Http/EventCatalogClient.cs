@@ -4,9 +4,18 @@ namespace NextHappen.Ticket.Infrastructure.Http;
 
 /// <summary>
 /// Cliente HTTP hacia event-service. Aísla a la capa de aplicación de los detalles
-/// de comunicación entre microservicios (patrón Adapter).
+/// de comunicación entre servicios (patrón Adapter).
 /// </summary>
-public class EventCatalogClient
+public record EventInfo(Guid Id, string? Title, decimal? Price, string? Organizer);
+
+public interface IEventCatalogClient
+{
+    Task<EventInfo?> GetEventAsync(Guid eventId);
+    Task<bool> ReserveSeatsAsync(Guid eventId, int quantity);
+    Task<bool> ReleaseSeatsAsync(Guid eventId, int quantity);
+}
+
+public class EventCatalogClient : IEventCatalogClient
 {
     private readonly HttpClient _http;
     private readonly ILogger<EventCatalogClient> _logger;
@@ -16,8 +25,6 @@ public class EventCatalogClient
         _http = httpFactory.CreateClient("EventService");
         _logger = logger;
     }
-
-    public record EventInfo(Guid Id, string? Title, decimal? Price, string? Organizer);
 
     /// <summary>Obtiene los datos del evento (precio, título, organizador).</summary>
     public async Task<EventInfo?> GetEventAsync(Guid eventId)

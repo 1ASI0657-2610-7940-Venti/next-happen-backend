@@ -148,7 +148,7 @@ if (app.Configuration.GetValue("Database:AutoCreate", true))
     {
         logger.LogCritical(ex, "[Event] Database initialization failed");
         throw;
-
+    }
 }
 
 // ── Pipeline ──

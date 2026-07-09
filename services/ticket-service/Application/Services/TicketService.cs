@@ -7,9 +7,14 @@ namespace NextHappen.Ticket.Application.Services;
 
 /// <summary>
 /// Responsable del ciclo de vida de las entradas: emisión (a partir de un pedido
-/// pagado), consulta y validación en la puerta. El cobro lo maneja <see cref="PaymentService"/>.
+/// pagado), consulta y validación en la puerta.
 /// </summary>
-public class TicketService
+public interface ITicketService
+{
+    Task<List<Domain.Entities.Ticket>> IssueTicketsForOrderAsync(Order order);
+}
+
+public class TicketService : ITicketService
 {
     private readonly ITicketRepository _ticketRepo;
 

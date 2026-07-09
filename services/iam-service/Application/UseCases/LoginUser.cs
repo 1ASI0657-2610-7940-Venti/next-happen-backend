@@ -1,7 +1,6 @@
 using NextHappen.IAM.Application.DTOs;
 using NextHappen.IAM.Domain.Repositories;
 using NextHappen.IAM.Domain.Services;
-using NextHappen.IAM.Infrastructure.Security;
 
 namespace NextHappen.IAM.Application.UseCases;
 
@@ -9,12 +8,12 @@ public class LoginUser
 {
     private readonly IUserRepository _userRepository;
     private readonly IPasswordHasher _passwordHasher;
-    private readonly JwtTokenGenerator _tokenGenerator;
+    private readonly IJwtTokenGenerator _tokenGenerator;
 
     public LoginUser(
         IUserRepository userRepository,
         IPasswordHasher passwordHasher,
-        JwtTokenGenerator tokenGenerator)
+        IJwtTokenGenerator tokenGenerator)
     {
         _userRepository = userRepository;
         _passwordHasher = passwordHasher;

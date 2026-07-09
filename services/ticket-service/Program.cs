@@ -94,9 +94,11 @@ builder.Services.AddMassTransit(x =>
 
 builder.Services.AddScoped<ITicketRepository, TicketRepository>();
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
-builder.Services.AddScoped<EventCatalogClient>();
-builder.Services.AddScoped<TicketService>();
+builder.Services.AddScoped<IEventCatalogClient, EventCatalogClient>();
+builder.Services.AddScoped<ITicketService, TicketService>();
 builder.Services.AddScoped<SalesService>();
+builder.Services.AddSingleton<ISessionService, StripeSessionService>();
+builder.Services.AddSingleton<IRefundService, StripeRefundServiceAdapter>();
 builder.Services.AddScoped<PaymentService>();
 
 // ── CORS (configurable whitelist) ──

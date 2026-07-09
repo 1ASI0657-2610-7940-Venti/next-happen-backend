@@ -107,16 +107,22 @@ builder.Services.AddCors(o => o.AddPolicy("AllowAll", p =>
 
 builder.Services.AddDbContext<TicketDbContext>(options =>
 {
-    options.UseMySql(
-        builder.Configuration.GetConnectionString("DefaultConnection"),
-        new MySqlServerVersion(new Version(8, 0, 32)),
-        mysql => mysql.SchemaBehavior(MySqlSchemaBehavior.Ignore));
+    if (builder.Environment.IsEnvironment("Testing")) return;
+
+    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+    if (!string.IsNullOrEmpty(connectionString))
+    {
+        options.UseMySql(
+            connectionString,
+            new MySqlServerVersion(new Version(8, 0, 32)),
+            mysql => mysql.SchemaBehavior(MySqlSchemaBehavior.Ignore));
+    }
 });
 
 var app = builder.Build();
 
 // ── Database initialization (dev convenience; disable in prod with Database:AutoCreate=false) ──
-if (app.Configuration.GetValue("Database:AutoCreate", true))
+if (!app.Environment.IsEnvironment("Testing") && app.Configuration.GetValue("Database:AutoCreate", true))
 {
     using var scope = app.Services.CreateScope();
     var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
@@ -143,3 +149,5 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.Run();
+
+public partial class Program { }

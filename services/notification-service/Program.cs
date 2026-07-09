@@ -33,6 +33,7 @@ builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
+
         var jwtKey = builder.Configuration["Jwt:Key"] ?? builder.Configuration["JWT_KEY"] ?? "DefaultSuperSecretKeyForDevelopmentOnly!";
         var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? builder.Configuration["JWT_ISSUER"];
         var jwtAudience = builder.Configuration["Jwt:Audience"] ?? builder.Configuration["JWT_AUDIENCE"];
@@ -46,6 +47,7 @@ builder.Services
             ValidAudience = jwtAudience,
             IssuerSigningKey = new SymmetricSecurityKey(key)
         };
+
     });
 
 builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
@@ -57,55 +59,71 @@ builder.Services.AddCors(o => o.AddPolicy("AllowAll", p =>
     p.WithOrigins(allowedOrigins).AllowAnyHeader().AllowAnyMethod().AllowCredentials()));
 
 // ── RabbitMQ (MassTransit) — Consumers ──
-builder.Services.AddMassTransit(x =>
+if (!builder.Environment.IsEnvironment("Testing"))
 {
-    x.AddConsumer<EventSavedConsumer>();
-    x.AddConsumer<EventUnsavedConsumer>();
-    x.AddConsumer<EventViewedConsumer>();
-    x.AddConsumer<TicketPurchasedConsumer>();
-
-    x.UsingRabbitMq((context, cfg) =>
+    builder.Services.AddMassTransit(x =>
     {
-        var host = builder.Configuration["RabbitMQ:Host"] ?? "localhost";
-        var virtualHost = builder.Configuration["RabbitMQ:VirtualHost"] ?? "/";
-        var useSsl = builder.Configuration.GetValue<bool>("RabbitMQ:UseSsl");
-        ushort port = useSsl ? (ushort)5671 : (ushort)5672;
+        x.AddConsumer<EventSavedConsumer>();
+        x.AddConsumer<EventUnsavedConsumer>();
+        x.AddConsumer<EventViewedConsumer>();
+        x.AddConsumer<TicketPurchasedConsumer>();
 
-        if (host.Contains(':'))
+        x.UsingRabbitMq((context, cfg) =>
         {
-            var parts = host.Split(':');
-            host = parts[0];
-            ushort.TryParse(parts[1], out port);
-        }
-        
-        cfg.Host(host, port, virtualHost, h =>
-        {
-            h.Username(builder.Configuration["RabbitMQ:Username"] ?? "guest");
-            h.Password(builder.Configuration["RabbitMQ:Password"] ?? "guest");
-            if (useSsl)
+            var host = builder.Configuration["RabbitMQ:Host"] ?? "localhost";
+            var virtualHost = builder.Configuration["RabbitMQ:VirtualHost"] ?? "/";
+            var useSsl = builder.Configuration.GetValue<bool>("RabbitMQ:UseSsl");
+            ushort port = useSsl ? (ushort)5671 : (ushort)5672;
+
+            if (host.Contains(':'))
             {
-                h.UseSsl(s =>
-                {
-                    s.Protocol = System.Security.Authentication.SslProtocols.Tls12;
-                });
+                var parts = host.Split(':');
+                host = parts[0];
+                ushort.TryParse(parts[1], out port);
             }
+
+            cfg.Host(host, port, virtualHost, h =>
+            {
+                h.Username(builder.Configuration["RabbitMQ:Username"] ?? "guest");
+                h.Password(builder.Configuration["RabbitMQ:Password"] ?? "guest");
+
+                if (useSsl)
+                {
+                    h.UseSsl(s =>
+                    {
+                        s.Protocol = System.Security.Authentication.SslProtocols.Tls12;
+                    });
+                }
+            });
+
+            cfg.ConfigureEndpoints(context);
         });
-        cfg.ConfigureEndpoints(context);
     });
-});
+}
+else
+{
+    builder.Services.AddMassTransit(x =>
+        x.UsingInMemory((context, cfg) => cfg.ConfigureEndpoints(context)));
+}
 
 builder.Services.AddDbContext<NotificationDbContext>(options =>
 {
-    options.UseMySql(
-        builder.Configuration.GetConnectionString("DefaultConnection"),
-        new MySqlServerVersion(new Version(8, 0, 32)),
-        mysql => mysql.SchemaBehavior(MySqlSchemaBehavior.Ignore));
+    if (builder.Environment.IsEnvironment("Testing")) return;
+
+    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+    if (!string.IsNullOrEmpty(connectionString))
+    {
+        options.UseMySql(
+            connectionString,
+            new MySqlServerVersion(new Version(8, 0, 32)),
+            mysql => mysql.SchemaBehavior(MySqlSchemaBehavior.Ignore));
+    }
 });
 
 var app = builder.Build();
 
 // ── Database initialization (dev convenience; disable in prod with Database:AutoCreate=false) ──
-if (app.Configuration.GetValue("Database:AutoCreate", true))
+if (!app.Environment.IsEnvironment("Testing") && app.Configuration.GetValue("Database:AutoCreate", true))
 {
     using var scope = app.Services.CreateScope();
     var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
@@ -132,3 +150,5 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.Run();
+
+public partial class Program { }

@@ -58,6 +58,7 @@ builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
+
         var jwtKey = builder.Configuration["Jwt:Key"] ?? builder.Configuration["JWT_KEY"] ?? "DefaultSuperSecretKeyForDevelopmentOnly!";
         var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? builder.Configuration["JWT_ISSUER"];
         var jwtAudience = builder.Configuration["Jwt:Audience"] ?? builder.Configuration["JWT_AUDIENCE"];
@@ -91,6 +92,7 @@ builder.Services
                 return Task.CompletedTask;
             }
         };
+
     });
 
 // ── DI ──
@@ -116,15 +118,22 @@ builder.Services.AddCors(options =>
 // ── Database ──
 builder.Services.AddDbContext<EventDbContext>(options =>
 {
+    // Skip configuration if we are in Testing environment (tests will provide their own DB provider)
+    if (builder.Environment.IsEnvironment("Testing")) return;
+
     var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-    options.UseMySql(
-        connectionString,
-        new MySqlServerVersion(new Version(8, 0, 32)),
-        mysql => mysql.SchemaBehavior(MySqlSchemaBehavior.Ignore)
-    );
+    if (!string.IsNullOrEmpty(connectionString))
+    {
+        options.UseMySql(
+            connectionString,
+            new MySqlServerVersion(new Version(8, 0, 32)),
+            mysql => mysql.SchemaBehavior(MySqlSchemaBehavior.Ignore)
+        );
+    }
 });
 
 var app = builder.Build();
+
 
 // ── Database initialization (dev convenience; disable in prod with Database:AutoCreate=false) ──
 if (app.Configuration.GetValue("Database:AutoCreate", true))
@@ -139,7 +148,7 @@ if (app.Configuration.GetValue("Database:AutoCreate", true))
     {
         logger.LogCritical(ex, "[Event] Database initialization failed");
         throw;
-    }
+
 }
 
 // ── Pipeline ──
@@ -159,3 +168,5 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+public partial class Program { }

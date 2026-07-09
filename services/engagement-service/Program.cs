@@ -33,6 +33,7 @@ builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
+
         var jwtKey = builder.Configuration["Jwt:Key"] ?? builder.Configuration["JWT_KEY"] ?? "DefaultSuperSecretKeyForDevelopmentOnly!";
         var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? builder.Configuration["JWT_ISSUER"];
         var jwtAudience = builder.Configuration["Jwt:Audience"] ?? builder.Configuration["JWT_AUDIENCE"];
@@ -46,6 +47,7 @@ builder.Services
             ValidAudience = jwtAudience,
             IssuerSigningKey = new SymmetricSecurityKey(key)
         };
+
     });
 
 builder.Services.AddScoped<ISavedEventRepository, SavedEventRepository>();
@@ -62,9 +64,11 @@ builder.Services.AddCors(o => o.AddPolicy("AllowAll", p =>
     p.WithOrigins(allowedOrigins).AllowAnyHeader().AllowAnyMethod().AllowCredentials()));
 
 // ── RabbitMQ (MassTransit) ──
-builder.Services.AddMassTransit(x =>
+if (!builder.Environment.IsEnvironment("Testing"))
 {
-    x.UsingRabbitMq((context, cfg) =>
+    builder.Services.AddMassTransit(x =>
+    {
+ x.UsingRabbitMq((context, cfg) =>
     {
         var host = builder.Configuration["RabbitMQ:Host"] ?? "localhost";
         var virtualHost = builder.Configuration["RabbitMQ:VirtualHost"] ?? "/";
@@ -77,11 +81,12 @@ builder.Services.AddMassTransit(x =>
             host = parts[0];
             ushort.TryParse(parts[1], out port);
         }
-        
+
         cfg.Host(host, port, virtualHost, h =>
         {
             h.Username(builder.Configuration["RabbitMQ:Username"] ?? "guest");
             h.Password(builder.Configuration["RabbitMQ:Password"] ?? "guest");
+
             if (useSsl)
             {
                 h.UseSsl(s =>
@@ -90,19 +95,32 @@ builder.Services.AddMassTransit(x =>
                 });
             }
         });
+
         cfg.ConfigureEndpoints(context);
+        });
     });
-});
+}
+else
+{
+    builder.Services.AddMassTransit(x => x.UsingInMemory((context, cfg) => cfg.ConfigureEndpoints(context)));
+}
 
 builder.Services.AddDbContext<EngagementDbContext>(options =>
 {
-    options.UseMySql(
-        builder.Configuration.GetConnectionString("DefaultConnection"),
-        new MySqlServerVersion(new Version(8, 0, 32)),
-        mysql => mysql.SchemaBehavior(MySqlSchemaBehavior.Ignore));
+    if (builder.Environment.IsEnvironment("Testing")) return;
+
+    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+    if (!string.IsNullOrEmpty(connectionString))
+    {
+        options.UseMySql(
+            connectionString,
+            new MySqlServerVersion(new Version(8, 0, 32)),
+            mysql => mysql.SchemaBehavior(MySqlSchemaBehavior.Ignore));
+    }
 });
 
 var app = builder.Build();
+
 
 // ── Database initialization (dev convenience; disable in prod with Database:AutoCreate=false) ──
 if (app.Configuration.GetValue("Database:AutoCreate", true))
@@ -117,6 +135,7 @@ if (app.Configuration.GetValue("Database:AutoCreate", true))
     {
         logger.LogCritical(ex, "[Engagement] Database initialization failed");
         throw;
+
     }
 }
 
@@ -132,3 +151,5 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.Run();
+
+public partial class Program { }

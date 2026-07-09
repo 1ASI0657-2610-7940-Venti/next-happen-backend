@@ -151,6 +151,7 @@ public class TicketIntegrationTests : IClassFixture<WebApplicationFactory<Progra
     {
         var json = "{\"type\":\"checkout.session.completed\"}";
         var content = new StringContent(json, Encoding.UTF8, "application/json");
+        content.Headers.Add("Stripe-Signature", "invalid_signature");
 
         var response = await _client.PostAsync("/api/payments/webhook", content);
 

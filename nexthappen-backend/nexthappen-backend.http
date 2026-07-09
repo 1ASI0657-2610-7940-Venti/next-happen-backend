@@ -1,6 +1,0 @@
-@nexthappen_backend_HostAddress = https://localhost:5038
-
-GET {{nexthappen_backend_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###

@@ -55,3 +55,32 @@ public class MetricRepository : IMetricRepository
     public async Task<List<Metric>> GetAllAsync()
         => await _context.Metrics.ToListAsync();
 }
+
+public class ReviewRepository : IReviewRepository
+{
+    private readonly EngagementDbContext _context;
+
+    public ReviewRepository(EngagementDbContext context)
+    {
+        _context = context;
+    }
+
+    public async Task AddAsync(Review review)
+    {
+        await _context.Reviews.AddAsync(review);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task UpdateAsync(Review review)
+    {
+        _context.Reviews.Update(review);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task<Review?> GetByUserAndEventAsync(Guid userId, Guid eventId)
+        => await _context.Reviews.FirstOrDefaultAsync(r => r.UserId == userId && r.EventId == eventId);
+
+    public async Task<List<Review>> GetByEventAsync(Guid eventId)
+        => await _context.Reviews.Where(r => r.EventId == eventId)
+            .OrderByDescending(r => r.CreatedAt).ToListAsync();
+}

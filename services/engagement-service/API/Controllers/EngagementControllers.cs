@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using NextHappen.Engagement.Application.DTOs;
 using NextHappen.Engagement.Application.Services;
 using NextHappen.Engagement.Domain.Entities;
 using System.Security.Claims;
@@ -82,5 +83,52 @@ public class MetricsController : ControllerBase
     {
         await _service.RegisterAsync(eventId, "view-event");
         return Ok();
+    }
+}
+
+[ApiController]
+[Route("api/events/{eventId:guid}/reviews")]
+public class ReviewsController : ControllerBase
+{
+    private readonly ReviewService _service;
+
+    public ReviewsController(ReviewService service)
+    {
+        _service = service;
+    }
+
+    /// <summary>Lista pública de reseñas con promedio y distribución.</summary>
+    [HttpGet]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetForEvent(Guid eventId)
+        => Ok(await _service.GetSummaryAsync(eventId));
+
+    /// <summary>Crea o actualiza la reseña del usuario autenticado para el evento.</summary>
+    [HttpPost]
+    [Authorize]
+    public async Task<IActionResult> Create(Guid eventId, [FromBody] CreateReviewRequest request)
+    {
+        var userId = GetAuthenticatedUserId();
+        if (userId == Guid.Empty) return Unauthorized();
+
+        var userName = User.FindFirstValue(ClaimTypes.Name)
+            ?? User.FindFirstValue("name")
+            ?? "Usuario";
+
+        try
+        {
+            var review = await _service.UpsertAsync(eventId, userId, userName, request.Rating, request.Comment);
+            return Ok(review);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+    }
+
+    private Guid GetAuthenticatedUserId()
+    {
+        Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId);
+        return userId;
     }
 }

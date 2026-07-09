@@ -16,3 +16,8 @@ dist/
 .env.local
 .env.*.local
 .DS_Store
+
+# Local secrets / overrides — never commit real credentials
+appsettings.Development.json
+appsettings.Production.json
+appsettings.local.json

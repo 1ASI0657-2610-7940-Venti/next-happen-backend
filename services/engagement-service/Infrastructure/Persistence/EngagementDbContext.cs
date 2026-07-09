@@ -9,6 +9,7 @@ public class EngagementDbContext : DbContext
 
     public DbSet<SavedEvent> SavedEvents { get; set; } = null!;
     public DbSet<Metric> Metrics { get; set; } = null!;
+    public DbSet<Review> Reviews { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -27,6 +28,17 @@ public class EngagementDbContext : DbContext
             entity.HasKey(m => m.Id);
             entity.Property(m => m.Id).ValueGeneratedOnAdd();
             entity.Property(m => m.Action).HasMaxLength(100).IsRequired();
+        });
+
+        modelBuilder.Entity<Review>(entity =>
+        {
+            entity.ToTable("Reviews");
+            entity.HasKey(r => r.Id);
+            entity.Property(r => r.Id).ValueGeneratedNever();
+            entity.Property(r => r.UserName).HasMaxLength(150);
+            entity.Property(r => r.Comment).HasMaxLength(1000);
+            entity.HasIndex(r => r.EventId);
+            entity.HasIndex(r => new { r.UserId, r.EventId }).IsUnique();
         });
     }
 }

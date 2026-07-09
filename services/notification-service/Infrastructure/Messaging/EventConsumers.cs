@@ -84,3 +84,32 @@ public class EventViewedConsumer : IConsumer<EventViewedEvent>
         }
     }
 }
+
+/// <summary>
+/// Consume TicketPurchasedEvent y notifica al comprador que su compra fue confirmada.
+/// </summary>
+public class TicketPurchasedConsumer : IConsumer<TicketPurchasedEvent>
+{
+    private readonly INotificationRepository _repo;
+    private readonly ILogger<TicketPurchasedConsumer> _logger;
+
+    public TicketPurchasedConsumer(INotificationRepository repo, ILogger<TicketPurchasedConsumer> logger)
+    {
+        _repo = repo;
+        _logger = logger;
+    }
+
+    public async Task Consume(ConsumeContext<TicketPurchasedEvent> context)
+    {
+        var msg = context.Message;
+        _logger.LogInformation("[RabbitMQ] TicketPurchased: User {UserId} bought for event {EventId}", msg.UserId, msg.EventId);
+
+        await _repo.AddAsync(new Domain.Entities.Notification
+        {
+            UserId = msg.UserId,
+            EventId = msg.EventId,
+            Message = $"¡Compra confirmada! Tu pago de S/. {msg.Price:0.00} fue procesado y tus entradas están listas.",
+            Timestamp = msg.Timestamp
+        });
+    }
+}

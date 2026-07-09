@@ -50,10 +50,16 @@ builder.Services
 
 builder.Services.AddScoped<ISavedEventRepository, SavedEventRepository>();
 builder.Services.AddScoped<IMetricRepository, MetricRepository>();
+builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
 builder.Services.AddScoped<SavedEventService>();
 builder.Services.AddScoped<MetricService>();
+builder.Services.AddScoped<ReviewService>();
 
-builder.Services.AddCors(o => o.AddPolicy("AllowAll", p => p.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod()));
+// ── CORS (configurable whitelist) ──
+var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
+    ?? new[] { "http://localhost:5173", "http://localhost:4173" };
+builder.Services.AddCors(o => o.AddPolicy("AllowAll", p =>
+    p.WithOrigins(allowedOrigins).AllowAnyHeader().AllowAnyMethod().AllowCredentials()));
 
 // ── RabbitMQ (MassTransit) ──
 builder.Services.AddMassTransit(x =>
@@ -98,13 +104,27 @@ builder.Services.AddDbContext<EngagementDbContext>(options =>
 
 var app = builder.Build();
 
-using (var scope = app.Services.CreateScope())
+// ── Database initialization (dev convenience; disable in prod with Database:AutoCreate=false) ──
+if (app.Configuration.GetValue("Database:AutoCreate", true))
 {
-    try { scope.ServiceProvider.GetRequiredService<EngagementDbContext>().Database.EnsureCreated(); }
-    catch (Exception ex) { Console.WriteLine($"[Engagement] Migration Error: {ex.Message}"); }
+    using var scope = app.Services.CreateScope();
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+    try
+    {
+        scope.ServiceProvider.GetRequiredService<EngagementDbContext>().Database.EnsureCreated();
+    }
+    catch (Exception ex)
+    {
+        logger.LogCritical(ex, "[Engagement] Database initialization failed");
+        throw;
+    }
 }
 
 app.MapGet("/", () => Results.Ok("NextHappen Engagement Service is running"));
+app.MapGet("/health", async (EngagementDbContext db) =>
+    await db.Database.CanConnectAsync()
+        ? Results.Ok(new { status = "healthy" })
+        : Results.StatusCode(StatusCodes.Status503ServiceUnavailable));
 app.UseCors("AllowAll");
 app.UseSwagger();
 app.UseSwaggerUI();

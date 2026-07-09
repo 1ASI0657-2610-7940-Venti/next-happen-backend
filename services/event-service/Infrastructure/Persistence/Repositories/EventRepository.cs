@@ -68,6 +68,30 @@ public class EventRepository : IEventRepository
         }
     }
 
+    public async Task<bool> ReleaseSeatsAsync(Guid id, int quantity)
+    {
+        using var transaction = await _context.Database.BeginTransactionAsync();
+        try
+        {
+            var ev = await _context.Events
+                .FromSqlRaw("SELECT * FROM Events WHERE Id = {0} FOR UPDATE", id)
+                .SingleOrDefaultAsync();
+
+            if (ev == null) return false;
+
+            ev.ReleaseSeats(quantity);
+
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+            return true;
+        }
+        catch (Exception)
+        {
+            await transaction.RollbackAsync();
+            return false;
+        }
+    }
+
     public async Task SaveChangesAsync()
     {
         await _context.SaveChangesAsync();

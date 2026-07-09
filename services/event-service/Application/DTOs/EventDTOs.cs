@@ -46,4 +46,11 @@ public class EventResponse
     public List<string> Photos { get; set; } = new();
     public DateTime StartDate { get; set; }
     public DateTime EndDate { get; set; }
+    public bool IsPublic { get; set; }
 }
+
+public class ReserveEventRequest
+{
+    public int Quantity { get; set; }
+}
+

@@ -33,23 +33,33 @@ builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
-        var key = Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!);
+        var jwtKey = builder.Configuration["Jwt:Key"] ?? builder.Configuration["JWT_KEY"] ?? "DefaultSuperSecretKeyForDevelopmentOnly!";
+        var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? builder.Configuration["JWT_ISSUER"];
+        var jwtAudience = builder.Configuration["Jwt:Audience"] ?? builder.Configuration["JWT_AUDIENCE"];
+
+        var key = Encoding.UTF8.GetBytes(jwtKey);
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true, ValidateAudience = true,
             ValidateIssuerSigningKey = true, ValidateLifetime = true,
-            ValidIssuer = builder.Configuration["Jwt:Issuer"],
-            ValidAudience = builder.Configuration["Jwt:Audience"],
+            ValidIssuer = jwtIssuer,
+            ValidAudience = jwtAudience,
             IssuerSigningKey = new SymmetricSecurityKey(key)
         };
     });
 
 builder.Services.AddScoped<ISavedEventRepository, SavedEventRepository>();
 builder.Services.AddScoped<IMetricRepository, MetricRepository>();
+builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
 builder.Services.AddScoped<SavedEventService>();
 builder.Services.AddScoped<MetricService>();
+builder.Services.AddScoped<ReviewService>();
 
-builder.Services.AddCors(o => o.AddPolicy("AllowAll", p => p.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod()));
+// ── CORS (configurable whitelist) ──
+var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
+    ?? new[] { "http://localhost:5173", "http://localhost:4173" };
+builder.Services.AddCors(o => o.AddPolicy("AllowAll", p =>
+    p.WithOrigins(allowedOrigins).AllowAnyHeader().AllowAnyMethod().AllowCredentials()));
 
 // ── RabbitMQ (MassTransit) ──
 builder.Services.AddMassTransit(x =>
@@ -58,11 +68,27 @@ builder.Services.AddMassTransit(x =>
     {
         var host = builder.Configuration["RabbitMQ:Host"] ?? "localhost";
         var virtualHost = builder.Configuration["RabbitMQ:VirtualHost"] ?? "/";
+        var useSsl = builder.Configuration.GetValue<bool>("RabbitMQ:UseSsl");
+        ushort port = useSsl ? (ushort)5671 : (ushort)5672;
+
+        if (host.Contains(':'))
+        {
+            var parts = host.Split(':');
+            host = parts[0];
+            ushort.TryParse(parts[1], out port);
+        }
         
-        cfg.Host(host, virtualHost, h =>
+        cfg.Host(host, port, virtualHost, h =>
         {
             h.Username(builder.Configuration["RabbitMQ:Username"] ?? "guest");
             h.Password(builder.Configuration["RabbitMQ:Password"] ?? "guest");
+            if (useSsl)
+            {
+                h.UseSsl(s =>
+                {
+                    s.Protocol = System.Security.Authentication.SslProtocols.Tls12;
+                });
+            }
         });
         cfg.ConfigureEndpoints(context);
     });
@@ -78,13 +104,27 @@ builder.Services.AddDbContext<EngagementDbContext>(options =>
 
 var app = builder.Build();
 
-using (var scope = app.Services.CreateScope())
+// ── Database initialization (dev convenience; disable in prod with Database:AutoCreate=false) ──
+if (app.Configuration.GetValue("Database:AutoCreate", true))
 {
-    try { scope.ServiceProvider.GetRequiredService<EngagementDbContext>().Database.EnsureCreated(); }
-    catch (Exception ex) { Console.WriteLine($"[Engagement] Migration Error: {ex.Message}"); }
+    using var scope = app.Services.CreateScope();
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+    try
+    {
+        scope.ServiceProvider.GetRequiredService<EngagementDbContext>().Database.EnsureCreated();
+    }
+    catch (Exception ex)
+    {
+        logger.LogCritical(ex, "[Engagement] Database initialization failed");
+        throw;
+    }
 }
 
 app.MapGet("/", () => Results.Ok("NextHappen Engagement Service is running"));
+app.MapGet("/health", async (EngagementDbContext db) =>
+    await db.Database.CanConnectAsync()
+        ? Results.Ok(new { status = "healthy" })
+        : Results.StatusCode(StatusCodes.Status503ServiceUnavailable));
 app.UseCors("AllowAll");
 app.UseSwagger();
 app.UseSwaggerUI();

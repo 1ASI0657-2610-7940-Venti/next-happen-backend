@@ -4,7 +4,7 @@ services:
     image: mysql:8.0
     container_name: nexthappen-db
     environment:
-      MYSQL_ROOT_PASSWORD: admin
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-admin}
     ports:
       - "3307:3306"
     volumes:
@@ -24,8 +24,8 @@ services:
       - "5672:5672"
       - "15672:15672"
     environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-guest}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS:-guest}
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "check_running"]
       interval: 10s
@@ -41,10 +41,11 @@ services:
     ports:
       - "5001:80"
     environment:
-      - ConnectionStrings__DefaultConnection=server=mysql;database=nexthappen_iam;user=root;password=admin
-      - Jwt__Key=uR7kQp2$$z1X!v8BnC4eP9xLfW6mZ3aHs
-      - Jwt__Issuer=nexthappen
-      - Jwt__Audience=nexthappen-users
+      - ConnectionStrings__DefaultConnection=server=mysql;database=nexthappen_iam;user=root;password=${MYSQL_ROOT_PASSWORD:-admin}
+      - Jwt__Key=${JWT_KEY:-DEV_ONLY_INSECURE_JWT_KEY_change_me_before_production_1234567890}
+      - Jwt__Issuer=${JWT_ISSUER:-nexthappen}
+      - Jwt__Audience=${JWT_AUDIENCE:-nexthappen-users}
+      - Cors__AllowedOrigins__0=${FRONTEND_ORIGIN:-http://localhost:5173}
     depends_on:
       mysql:
         condition: service_healthy
@@ -58,10 +59,11 @@ services:
     ports:
       - "5002:80"
     environment:
-      - ConnectionStrings__DefaultConnection=server=mysql;database=nexthappen_events;user=root;password=admin
-      - Jwt__Key=uR7kQp2$$z1X!v8BnC4eP9xLfW6mZ3aHs
-      - Jwt__Issuer=nexthappen
-      - Jwt__Audience=nexthappen-users
+      - ConnectionStrings__DefaultConnection=server=mysql;database=nexthappen_events;user=root;password=${MYSQL_ROOT_PASSWORD:-admin}
+      - Jwt__Key=${JWT_KEY:-DEV_ONLY_INSECURE_JWT_KEY_change_me_before_production_1234567890}
+      - Jwt__Issuer=${JWT_ISSUER:-nexthappen}
+      - Jwt__Audience=${JWT_AUDIENCE:-nexthappen-users}
+      - Cors__AllowedOrigins__0=${FRONTEND_ORIGIN:-http://localhost:5173}
     depends_on:
       mysql:
         condition: service_healthy
@@ -75,12 +77,27 @@ services:
     ports:
       - "5003:80"
     environment:
-      - ConnectionStrings__DefaultConnection=server=mysql;database=nexthappen_tickets;user=root;password=admin
-      - Jwt__Key=uR7kQp2$$z1X!v8BnC4eP9xLfW6mZ3aHs
-      - Jwt__Issuer=nexthappen
-      - Jwt__Audience=nexthappen-users
+      - ConnectionStrings__DefaultConnection=server=mysql;database=nexthappen_tickets;user=root;password=${MYSQL_ROOT_PASSWORD:-admin}
+      - Jwt__Key=${JWT_KEY:-DEV_ONLY_INSECURE_JWT_KEY_change_me_before_production_1234567890}
+      - Jwt__Issuer=${JWT_ISSUER:-nexthappen}
+      - Jwt__Audience=${JWT_AUDIENCE:-nexthappen-users}
+      - Cors__AllowedOrigins__0=${FRONTEND_ORIGIN:-http://localhost:5173}
+      - Services__EventServiceUrl=http://event-service
+      # ── Stripe (Checkout + Webhooks) ──
+      - Stripe__SecretKey=${STRIPE_SECRET_KEY:-}
+      - Stripe__WebhookSecret=${STRIPE_WEBHOOK_SECRET:-}
+      - Stripe__Currency=${STRIPE_CURRENCY:-pen}
+      - Stripe__FrontendBaseUrl=${FRONTEND_ORIGIN:-http://localhost:5173}
+      # ── RabbitMQ (publica TicketPurchasedEvent) ──
+      - RabbitMQ__Host=${RABBITMQ_HOST:-rabbitmq}
+      - RabbitMQ__Username=${RABBITMQ_USER:-guest}
+      - RabbitMQ__Password=${RABBITMQ_PASS:-guest}
+      - RabbitMQ__VirtualHost=${RABBITMQ_VHOST:-/}
+      - RabbitMQ__UseSsl=${RABBITMQ_USE_SSL:-false}
     depends_on:
       mysql:
+        condition: service_healthy
+      rabbitmq:
         condition: service_healthy
 
   # ── Engagement Service (Publisher) ──
@@ -92,13 +109,16 @@ services:
     ports:
       - "5004:80"
     environment:
-      - ConnectionStrings__DefaultConnection=server=mysql;database=nexthappen_engagement;user=root;password=admin
-      - Jwt__Key=uR7kQp2$$z1X!v8BnC4eP9xLfW6mZ3aHs
-      - Jwt__Issuer=nexthappen
-      - Jwt__Audience=nexthappen-users
-      - RabbitMQ__Host=rabbitmq
-      - RabbitMQ__Username=guest
-      - RabbitMQ__Password=guest
+      - ConnectionStrings__DefaultConnection=server=mysql;database=nexthappen_engagement;user=root;password=${MYSQL_ROOT_PASSWORD:-admin}
+      - Jwt__Key=${JWT_KEY:-DEV_ONLY_INSECURE_JWT_KEY_change_me_before_production_1234567890}
+      - Jwt__Issuer=${JWT_ISSUER:-nexthappen}
+      - Jwt__Audience=${JWT_AUDIENCE:-nexthappen-users}
+      - Cors__AllowedOrigins__0=${FRONTEND_ORIGIN:-http://localhost:5173}
+      - RabbitMQ__Host=${RABBITMQ_HOST:-rabbitmq}
+      - RabbitMQ__Username=${RABBITMQ_USER:-guest}
+      - RabbitMQ__Password=${RABBITMQ_PASS:-guest}
+      - RabbitMQ__VirtualHost=${RABBITMQ_VHOST:-/}
+      - RabbitMQ__UseSsl=${RABBITMQ_USE_SSL:-false}
     depends_on:
       mysql:
         condition: service_healthy
@@ -114,13 +134,16 @@ services:
     ports:
       - "5005:80"
     environment:
-      - ConnectionStrings__DefaultConnection=server=mysql;database=nexthappen_notifications;user=root;password=admin
-      - Jwt__Key=uR7kQp2$$z1X!v8BnC4eP9xLfW6mZ3aHs
-      - Jwt__Issuer=nexthappen
-      - Jwt__Audience=nexthappen-users
-      - RabbitMQ__Host=rabbitmq
-      - RabbitMQ__Username=guest
-      - RabbitMQ__Password=guest
+      - ConnectionStrings__DefaultConnection=server=mysql;database=nexthappen_notifications;user=root;password=${MYSQL_ROOT_PASSWORD:-admin}
+      - Jwt__Key=${JWT_KEY:-DEV_ONLY_INSECURE_JWT_KEY_change_me_before_production_1234567890}
+      - Jwt__Issuer=${JWT_ISSUER:-nexthappen}
+      - Jwt__Audience=${JWT_AUDIENCE:-nexthappen-users}
+      - Cors__AllowedOrigins__0=${FRONTEND_ORIGIN:-http://localhost:5173}
+      - RabbitMQ__Host=${RABBITMQ_HOST:-rabbitmq}
+      - RabbitMQ__Username=${RABBITMQ_USER:-guest}
+      - RabbitMQ__Password=${RABBITMQ_PASS:-guest}
+      - RabbitMQ__VirtualHost=${RABBITMQ_VHOST:-/}
+      - RabbitMQ__UseSsl=${RABBITMQ_USE_SSL:-false}
     depends_on:
       mysql:
         condition: service_healthy
@@ -134,8 +157,12 @@ services:
       dockerfile: gateway/api-gateway/Dockerfile
     container_name: nexthappen-gateway
     ports:
-      - "5000:80"
+      - "5010:80"
     environment:
+      - Jwt__Key=${JWT_KEY:-DEV_ONLY_INSECURE_JWT_KEY_change_me_before_production_1234567890}
+      - Jwt__Issuer=${JWT_ISSUER:-nexthappen}
+      - Jwt__Audience=${JWT_AUDIENCE:-nexthappen-users}
+      - Cors__AllowedOrigins__0=${FRONTEND_ORIGIN:-http://localhost:5173}
       - ReverseProxy__Clusters__iam-cluster__Destinations__iam-service__Address=http://iam-service:80
       - ReverseProxy__Clusters__event-cluster__Destinations__event-service__Address=http://event-service:80
       - ReverseProxy__Clusters__ticket-cluster__Destinations__ticket-service__Address=http://ticket-service:80
@@ -150,4 +177,3 @@ services:
 
 volumes:
   mysql_data:
-

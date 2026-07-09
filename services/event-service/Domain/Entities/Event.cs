@@ -67,4 +67,30 @@ public class Event
         DateRange = dateRange;
         IsPublic = isPublic;
     }
+
+    public void ReserveSeats(int quantity)
+    {
+        if (quantity <= 0)
+            throw new ArgumentException("La cantidad a reservar debe ser mayor que cero.");
+
+        if (Quantity.HasValue)
+        {
+            if (Quantity < quantity)
+                throw new InvalidOperationException("No hay suficientes cupos disponibles.");
+            Quantity -= quantity;
+        }
+    }
+
+    /// <summary>
+    /// Devuelve cupos al inventario (p. ej. cuando un pago expira o se reembolsa una entrada).
+    /// </summary>
+    public void ReleaseSeats(int quantity)
+    {
+        if (quantity <= 0)
+            throw new ArgumentException("La cantidad a liberar debe ser mayor que cero.");
+
+        if (Quantity.HasValue)
+            Quantity += quantity;
+    }
 }
+

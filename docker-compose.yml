@@ -157,7 +157,7 @@ services:
       dockerfile: gateway/api-gateway/Dockerfile
     container_name: nexthappen-gateway
     ports:
-      - "5000:80"
+      - "5010:80"
     environment:
       - Jwt__Key=${JWT_KEY:-DEV_ONLY_INSECURE_JWT_KEY_change_me_before_production_1234567890}
       - Jwt__Issuer=${JWT_ISSUER:-nexthappen}
